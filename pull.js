@@ -7,6 +7,7 @@
  */
 var request = require('request');
 var mongo = require('mongodb');
+var schedule = require('node-schedule');
 
 var BSON = mongo.BSONPure;
 
@@ -15,8 +16,8 @@ var db;
 
 var mongoConn = [
     'mongodb://localhost/weather',
-    'mongodb://app:app@wp.mackeneight.net:27017/contacts',
-    'mongodb://app:app@ds031978.mongolab.com:31978/contacts'
+    'mongodb://app:app@wp.mackeneight.net:27017/weather',
+    'mongodb://app:app@ds031978.mongolab.com:31978/weather'
 ];
 
 var conn = process.env.MONGODB || mongoConn[0];
@@ -43,15 +44,18 @@ var REQ = function() {
     imgFile += pad2(doc.reqDate.getUTCMonth()+1);
     imgFile += pad2(doc.reqDate.getUTCDate());
     imgFile += pad2(doc.reqDate.getUTCHours());
-    imgFile += pad2(Math.floor(doc.reqDate.getUTCMinutes()/6-1)*6);
+    imgFile += pad2(Math.floor(doc.reqDate.getUTCMinutes()/6)*6);
     imgFile += '.png';
     console.log(imgFile);
     doc.imgFile = imgFile;
 
     request({url: imgFile, method: 'HEAD'}, function (error, response, body) {
+        /*
+         *TODO: need to cope with error conditions here
+         */
         console.log(error);
-        console.log('SRV:'+response.statusCode);
-        console.log('SRV:'+response.headers.date)
+        console.log('BOM:'+response.statusCode);
+        console.log('BOM:'+response.headers.date)
         console.log((body.length/1024).toFixed(2)+'Kb');
         if (!error && response.statusCode == 200) {
             /*
@@ -82,8 +86,21 @@ var REQ = function() {
     });
 };
 
-REQ();
+//REQ();
 //setInterval(REQ, 60000);
+
+var rule = new schedule.RecurrenceRule();
+//rule.dayOfWeek = [0, new schedule.Range(4, 6)];
+//rule.hour = 17;
+//rule.minute = 0;
+rule.minute = [];
+for(var i = 5; i < 60; i += 6) {
+    rule.minute.push(i);
+}
+
+console.log(rule)
+var job = schedule.scheduleJob(rule, REQ);
+console.log(job);
 
 exports.show = function(req, res) {
     db.collection('R256', function(err, collection) {
