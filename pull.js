@@ -32,24 +32,28 @@ function pad2(number) {
     return (number < 10 ? '0' : '') + number
 }
 
-var REQ = function() {
+var REQ = function(BOM_ID) {
 
-    var imgFile="http://www.bom.gov.au/radar/IDR712.T.";
+    BOM_ID = BOM_ID || 'IDR712';
+
+    var imgFile= "http://www.bom.gov.au/radar/" + BOM_ID + ".T.";
 
     var doc = {};
 
     doc.reqDate = new Date();
-    console.log(doc.reqDate.toUTCString());
-    imgFile += doc.reqDate.getUTCFullYear();
-    imgFile += pad2(doc.reqDate.getUTCMonth()+1);
-    imgFile += pad2(doc.reqDate.getUTCDate());
-    imgFile += pad2(doc.reqDate.getUTCHours());
-    imgFile += pad2(Math.floor(doc.reqDate.getUTCMinutes()/6)*6);
-    imgFile += '.png';
-    console.log(imgFile);
-    doc.imgFile = imgFile;
+    console.log('REQ:'+doc.reqDate.toUTCString());
 
-    request({url: imgFile, method: 'HEAD'}, function (error, response, body) {
+    doc.stamp = doc.reqDate.getUTCFullYear().toString();
+    doc.stamp += pad2(doc.reqDate.getUTCMonth()+1);
+    doc.stamp += pad2(doc.reqDate.getUTCDate());
+    doc.stamp += pad2(doc.reqDate.getUTCHours());
+    doc.stamp += pad2(Math.floor(doc.reqDate.getUTCMinutes()/6)*6);
+    console.log('REQ:'+doc.stamp);
+
+    doc.imgFile = imgFile + doc.stamp + '.png';
+    console.log('REQ:'+doc.imgFile);
+
+    request({url: doc.imgFile, method: 'HEAD'}, function (error, response, body) {
         /*
          *TODO: need to cope with error conditions here
          */
@@ -61,7 +65,7 @@ var REQ = function() {
             /*
              * encoding: null - forces the request() to return body as a buffer (not string)
              */
-            request({url: imgFile, method: 'GET', encoding: null}, function (error, response, body) {
+            request({url: doc.imgFile, method: 'GET', encoding: null}, function (error, response, body) {
                 if (!error && response.statusCode == 200) {
                     console.log(response.headers['content-type']);
 //                    console.log((body.length/1024).toFixed(2)+'Kb');
@@ -72,7 +76,7 @@ var REQ = function() {
                     doc.header = response.headers;
                     doc.image = body;
 
-                    db.collection('R256', function(err, collection) {
+                    db.collection(BOM_ID, function(err, collection) {
                         if (err) throw err;
                         collection.insert( doc , function(err, result) {
                             if (err) throw err;
@@ -98,12 +102,27 @@ for(var i = 5; i < 60; i += 6) {
     rule.minute.push(i);
 }
 
-console.log(rule)
-var job = schedule.scheduleJob(rule, REQ);
-console.log(job);
+var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
+
+console.log(rule);
+
+var job = [];
+
+job[0] = schedule.scheduleJob(rule, function() { REQ(bomTargets[0]); });
+job[1] = schedule.scheduleJob(rule, function() { REQ(bomTargets[1]); });
+job[2] = schedule.scheduleJob(rule, function() { REQ(bomTargets[2]); });
+
+for (var i = 0; i < bomTargets.length; i++) {
+
+    console.log('JOB:'+bomTargets[i]);
+    console.log(job[i]);
+//    rule.second += 20;
+
+};
+
 
 exports.show = function(req, res) {
-    db.collection('R256', function(err, collection) {
+    db.collection('IDR712', function(err, collection) {
         if (err) throw err;
         collection.findOne( { }, function(err, result) {
             if (err) throw err;
