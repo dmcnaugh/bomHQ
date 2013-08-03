@@ -126,7 +126,7 @@ var STATS = function() {
                     doc[stations[i]] = {};
 
                     doc[stations[i]].temp = parseFloat(RegExp(temp.replace('%STN%', stations[i])).exec(body)[1]);
-                    doc[stations[i]].rain = parseFloat(RegExp(temp.replace('%STN%', stations[i])).exec(body)[1]);
+                    doc[stations[i]].rain = parseFloat(RegExp(rain.replace('%STN%', stations[i])).exec(body)[1]);
                     doc[stations[i]].hum = parseFloat(RegExp(hum.replace('%STN%', stations[i])).exec(body)[1]);
 
                 }
