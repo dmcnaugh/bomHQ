@@ -10,6 +10,7 @@
     "jade": "*",
     "mongodb": "*",
     "node-schedule": "*",
+    "cron": "*",
     "request": "*"
   }
 }

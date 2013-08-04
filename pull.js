@@ -7,7 +7,7 @@
  */
 var request = require('request');
 var mongo = require('mongodb');
-var schedule = require('node-schedule');
+var cron = require('cron');
 
 var BSON = mongo.BSONPure;
 
@@ -150,6 +150,9 @@ var STATS = function() {
 //STATS();
 //setInterval(REQ, 60000);
 
+/**
+ * OLD NODE-SCHEDULE CODE
+
 var rule = new schedule.RecurrenceRule();
 //rule.dayOfWeek = [0, new schedule.Range(4, 6)];
 //rule.hour = 17;
@@ -169,6 +172,15 @@ job[0] = schedule.scheduleJob(bomTargets[0], rule, function() { REQ(bomTargets[0
 job[1] = schedule.scheduleJob(bomTargets[1], rule, function() { REQ(bomTargets[1]); });    rule.second += 15;
 job[2] = schedule.scheduleJob(bomTargets[2], rule, function() { REQ(bomTargets[2]); });    rule.second += 15;
 job[3] = schedule.scheduleJob('STATS', rule, function() { STATS(); });
+ */
+
+var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
+var job = [];
+
+job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
+job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
+job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
+job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
 
 
 exports.show = function(req, res) {
@@ -186,8 +198,8 @@ exports.show = function(req, res) {
 exports.jobStats = function(req, res) {
 
     for(var i = 0; i < job.length; i++) {
-        job[i].go = job[i].showNextRun();
-        job[i].len = job[i].showQueueLength();
+        job[i].go = job[i].running;
+        job[i].len = job[i].cronTime.source;
     }
 
     res.render('jobs', { title: 'Job Stats', jobs: job });
