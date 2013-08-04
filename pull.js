@@ -102,6 +102,7 @@ var STATS = function() {
     var temp = "<td headers=\"obs-temp obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
     var rain = "<td headers=\"obs-rainsince9am obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
     var hum = "<td headers=\"obs-relhum obs-station-%STN%\"> *([0-9]+) *</td>";
+    var press = "<td headers=\"obs-press obs-station-sydney-observatory-hill\"> *([0-9]*\\.[0-9]+) *</td>"
 
     var tempRE = new RegExp(temp.replace('%STN%', stations[0]));
     var rainRE = new RegExp(temp.replace('%STN%', stations[0]));
@@ -130,6 +131,8 @@ var STATS = function() {
                     doc[stations[i]].hum = parseFloat(RegExp(hum.replace('%STN%', stations[i])).exec(body)[1]);
 
                 }
+
+                doc['sydney-observatory-hill'].press = parseFloat(RegExp(press).exec(body)[1]);
 
                 db.collection('OBS_SYD', function(err, collection) {
                     if (err) throw err;
@@ -178,9 +181,13 @@ var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
 var job = [];
 
 job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
+job[0].name = bomTargets[0];
 job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
+job[1].name = bomTargets[1];
 job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
+job[2].name = bomTargets[2];
 job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
+job[3].name = 'STATS';
 
 
 exports.show = function(req, res) {
@@ -197,10 +204,10 @@ exports.show = function(req, res) {
 
 exports.jobStats = function(req, res) {
 
-    for(var i = 0; i < job.length; i++) {
-        job[i].go = job[i].running;
-        job[i].len = job[i].cronTime.source;
-    }
+//    for(var i = 0; i < job.length; i++) {
+//        job[i].go = job[i].running;
+//        job[i].len = job[i].cronTime.source;
+//    }
 
     res.render('jobs', { title: 'Job Stats', jobs: job });
 }
