@@ -60,18 +60,13 @@ var REQ = function(BOM_ID) {
         console.log(error);
         console.log('BOM:'+response.statusCode);
         console.log('BOM:'+response.headers.date);
-//        console.log((body.length/1024).toFixed(2)+'Kb');
+
         if (!error && response.statusCode == 200) {
             /*
              * encoding: null - forces the request() to return body as a buffer (not string)
              */
             request({url: doc.imgFile, method: 'GET', encoding: null}, function (error, response, body) {
                 if (!error && response.statusCode == 200) {
-//                    console.log(response.headers['content-type']);
-//                    console.log((body.length/1024).toFixed(2)+'Kb');
-//                    console.log(body.length);
-//                    console.log(typeof body);
-//                    console.log(Buffer.isBuffer(body));
 
                     doc.header = response.headers;
                     doc.image = body;
@@ -104,10 +99,6 @@ var STATS = function() {
     var hum = "<td headers=\"obs-relhum obs-station-%STN%\"> *([0-9]+) *</td>";
     var press = "<td headers=\"obs-press obs-station-sydney-observatory-hill\"> *([0-9]*\\.[0-9]+) *</td>"
 
-    var tempRE = new RegExp(temp.replace('%STN%', stations[0]));
-    var rainRE = new RegExp(temp.replace('%STN%', stations[0]));
-    var humRE = new RegExp(hum.replace('%STN%', stations[0]));
-
     request({url: source, method: 'HEAD'}, function (error, response, body) {
         /*
          *TODO: need to cope with error conditions here
@@ -115,7 +106,7 @@ var STATS = function() {
         console.log(error);
         console.log('STATS:'+response.statusCode);
         console.log('STATS:'+response.headers.date);
-//        console.log('STATS:'+(body.length/1024).toFixed(2)+'Kb');
+
         if (!error && response.statusCode == 200) {
 
             request({url: source, method: 'GET'}, function (error, response, body) {
@@ -149,34 +140,6 @@ var STATS = function() {
 
 };
 
-
-//STATS();
-//setInterval(REQ, 60000);
-
-/**
- * OLD NODE-SCHEDULE CODE
-
-var rule = new schedule.RecurrenceRule();
-//rule.dayOfWeek = [0, new schedule.Range(4, 6)];
-//rule.hour = 17;
-//rule.minute = 0;
-rule.minute = [];
-for(var i = 5; i < 60; i += 6) {
-    rule.minute.push(i);
-}
-
-var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
-
-//console.log(rule);
-
-var job = [];
-
-job[0] = schedule.scheduleJob(bomTargets[0], rule, function() { REQ(bomTargets[0]); });    rule.second += 15;
-job[1] = schedule.scheduleJob(bomTargets[1], rule, function() { REQ(bomTargets[1]); });    rule.second += 15;
-job[2] = schedule.scheduleJob(bomTargets[2], rule, function() { REQ(bomTargets[2]); });    rule.second += 15;
-job[3] = schedule.scheduleJob('STATS', rule, function() { STATS(); });
- */
-
 var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
 var job = [];
 
@@ -203,11 +166,6 @@ exports.show = function(req, res) {
 }
 
 exports.jobStats = function(req, res) {
-
-//    for(var i = 0; i < job.length; i++) {
-//        job[i].go = job[i].running;
-//        job[i].len = job[i].cronTime.source;
-//    }
 
     res.render('jobs', { title: 'Job Stats', jobs: job });
 }

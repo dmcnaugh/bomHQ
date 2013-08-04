@@ -5,4 +5,4 @@ block content
   p Welcome to #{title}
 
   for row in jobs
-    p #{row.name} : fire == #{row.riunning} in  #{row.cronTime.getTimeout()/1000} sec on #{row.cronTime}
+    p #{row.name} : fire == #{row.running} at #{row.cronTime.sendAt()} in  #{row.cronTime.getTimeout()/1000} sec on #{row.cronTime}
