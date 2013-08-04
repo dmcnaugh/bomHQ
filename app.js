@@ -37,6 +37,7 @@ app.get('/', routes.index);
 app.get('/users', user.list);
 app.get('/img', pull.show);
 app.get('/stats', pull.jobStats);
+app.get('/data/:station/:stat', pull.data);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

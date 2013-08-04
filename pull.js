@@ -169,3 +169,26 @@ exports.jobStats = function(req, res) {
 
     res.render('jobs', { title: 'Job Stats', jobs: job });
 }
+
+exports.data = function(req, res) {
+
+    console.log(req.params);
+
+    db.collection('OBS_SYD', function(err, collection) {
+        if (err) throw err;
+        var proj = { reqDate: 1, '_id': 0 };
+        proj[req.params.station+'.'+req.params.stat] = 1;
+        console.log(proj);
+        collection.find( {}, proj).sort({reqDate: -1}).limit(96).toArray(function(err, result) {
+//            if (err) throw err;
+            if(result[0] && result[0][req.params.station] && result[0][req.params.station][req.params.stat] != undefined) {
+                var table = result.map(function(e) { return [ e.reqDate.getTime(), e[req.params.station][req.params.stat]]; });
+//                console.log(table);
+                table.sort(function (a,b) {return a[0] - b[0];}); //(re)sort by reqDate (ascending)
+                res.render('table', { title: 'Station Stats', station: req.params.station, stat: req.params.stat, data: table });
+            } else {
+                res.render('table', { title: 'No Station Stats', station: req.params.station, stat: req.params.stat, data: [] });
+            }
+        });
+    });
+}

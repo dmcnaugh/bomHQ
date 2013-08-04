@@ -1,0 +1,48 @@
+extends layout
+
+block content
+    h1 #{title}: #{stat} for #{station}
+
+
+
+    div#chart(style="width:900px;height:300px")
+    p Min:&nbsp;
+        span#min
+        //span &nbsp;&deg;C
+    p Max:&nbsp;
+        span#max
+        //span &nbsp;&deg;C
+    p Last:&nbsp;
+        span#last
+        //span &nbsp;&deg;C
+
+    script.
+        var plotdata = #{JSON.stringify(data)};
+        var clabel = "#{station}";
+
+        $("#last").text(plotdata[plotdata.length-1][1]);
+        $("#min").text(Math.min.apply(null, plotdata.map(function(e) { return e[1]; })));
+        $("#max").text(Math.max.apply(null, plotdata.map(function(e) { return e[1]; })));
+
+        $.plot($("#chart"), [ { label: clabel, data: plotdata } ], {
+            colors: ["red", "yellow", "blue"],
+            xaxis: { mode: "time", timezone: "browser", timeformat: "%a %H:%M" },
+            yaxis: { },
+            shadowSize: 4,
+            legend: { show: true },
+            lines: { show: true },
+            points: { show: false }
+        });
+
+
+
+
+//    table
+//        tr
+//            th Date/time
+//            th Data
+//
+//        for row in data
+//            tr
+//                td #{row[0]}
+//                td #{row[1]}
