@@ -3,9 +3,22 @@ html
   head
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css')
-    script(src='/flot/jquery.js')
-    script(src='/flot/jquery.flot.js')
-    script(src='/flot/jquery.flot.time.js')
-
+    include inc/header
     body
+
+        h1.page-header= title
+
+        ul.nav.nav-pills
+                li#stats: a(href='/stats') Job Stats
+                li#temp: a(href='/chart/temp') Temp
+                li#rain: a(href='/chart/rain') Rain
+                li#hum: a(href='/chart/hum') Humidity
+                li#press: a(href='/chart/press') Pressure
+
+        script.
+            $(document).ready(function() {
+                  $(".active").removeClass("active");
+                  $("##{tab}").addClass("active");
+            });
+
     block content

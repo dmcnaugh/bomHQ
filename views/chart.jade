@@ -1,0 +1,24 @@
+extends layout
+
+block content
+    h3 #{stat}
+
+    div.container
+        //div#chart(style="width:900px;height:300px")
+        div#chart(style="height:300px").span12
+        div.span8.offset2
+            table.table.table-bordered.table-condensed.table-striped
+                thead
+                    tr
+                        th#station Station
+                        th#min Min
+                        th#max Max
+                        th#avg Avg
+                        th#last Last
+                tbody#vals
+    script.
+        var statType = "#{stat}";
+        var stations = "#{stations}".split(",");
+
+    script(src='/javascripts/chartdata.js')
+
