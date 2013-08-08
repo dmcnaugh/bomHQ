@@ -9,9 +9,7 @@ var express = require('express')
   , http = require('http')
   , path = require('path');
 
-var pull = require('./pull');
-
-
+var pull = require('./routes/pull');
 
 var app = express();
 
@@ -40,7 +38,6 @@ app.get('/stats', pull.jobStats);
 app.get('/data/:station/:stat', pull.data);
 app.get('/plot/:station/:stat', pull.plot);
 app.get('/chart/:stat', pull.chart);
-
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

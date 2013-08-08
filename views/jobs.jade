@@ -8,5 +8,17 @@ block content
         p No jobs scheduled
 
     if jobs[0]
-        for row in jobs
-            p #{row.name} : fire == #{row.running} at #{row.cronTime.sendAt()} in  #{row.cronTime.getTimeout()/1000} sec on #{row.cronTime}
+        table.table
+            tr
+                th Name
+                th Running?
+                th Time
+                th in (sec.)
+                th Cron
+            for row in jobs
+              tr
+                td #{row.name}
+                td #{row.running}
+                td #{row.cronTime.sendAt()}
+                td #{row.cronTime.getTimeout()/1000}
+                td #{row.cronTime}
