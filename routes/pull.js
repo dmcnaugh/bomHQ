@@ -21,7 +21,7 @@ var mongoConn = [
     'mongodb://app:app@ds031978.mongolab.com:31978/weather'
 ];
 
-var conn = process.env.MONGODB || mongoConn[1];
+var conn = process.env.MONGODB || mongoConn[0];
 
 MongoClient.connect(conn, { server: { auto_reconnect: true, socketOptions: { keepAlive: 1}}}, function(err, dbc) {
     if (err) throw err;
@@ -145,14 +145,14 @@ var STATS = function() {
 var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
 var job = [];
 
-//job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
-//job[0].name = bomTargets[0];
-//job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
-//job[1].name = bomTargets[1];
-//job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
-//job[2].name = bomTargets[2];
-//job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
-//job[3].name = 'STATS';
+job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
+job[0].name = bomTargets[0];
+job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
+job[1].name = bomTargets[1];
+job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
+job[2].name = bomTargets[2];
+job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
+job[3].name = 'STATS';
 
 
 exports.show = function(req, res) {
@@ -223,5 +223,7 @@ exports.data = function(req, res) {
 }
 
 exports.chart = function(req, res) {
+
+    console.log(req.params);
     res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});
 }
