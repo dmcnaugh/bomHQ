@@ -6,58 +6,64 @@
  * To change this template use File | Settings | File Templates.
  */
 
-var plotdata = [];
-var sym = "";
+function GetStats($scope) {
 
-switch(statType) { // var:statType initialised before this script is included
-    case "temp":
-        sym = "&deg;C";
-        break;
-    case "press":
-        sym = "&nbsp;hPa";
-        break;
-    case "rain":
-        sym = "&nbsp;mm";
-        break;
-    case "hum":
-        sym = "%";
-        break;
-};
+    $scope.plotdata = [];
+    $scope.xstats = 'Cow';
+    $scope.stats = [];
 
-for(var stn=0; stn < stations.length; stn++) { // var:stations initialised before this script is included
+    console.log($scope.statType);
+    console.log($scope.stations);
 
-    $.getJSON("/data/"+stations[stn]+"/"+statType, function(result) {
+    switch($scope.statType) { // var:statType initialised before this script is included
+        case "temp":
+            $scope.sym = "&deg;C";
+            break;
+        case "press":
+            $scope.sym = "&nbsp;hPa";
+            break;
+        case "rain":
+            $scope.sym = "&nbsp;mm";
+            break;
+        case "hum":
+            $scope.sym = "%";
+            break;
+    };
 
-        //console.log(result);
-        plotdata.push(result);
+    console.log($scope.sym);
 
-        if(result.data[0].length == 0) return;
+    for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
 
-        var last = result.data[result.data.length-1][1];
-        var min = Math.min.apply(null, result.data.map(function(e) { return e[1]; }));
-        var max = Math.max.apply(null, result.data.map(function(e) { return e[1]; }));
+        $.getJSON("/data/"+$scope.stations[stn]+"/"+$scope.statType, function(result) {
+          $scope.$apply(function() {
+            //console.log(result);
+            $scope.plotdata.push(result);
 
-        var sum = result.data.map(function(e) { return e[1]; }).reduce(function (a,b) { return a + b; });
-        var avg = Math.round(sum/result.data.length*10)/10; //round to 1 d.p.
+            if(result.data[0].length == 0) return;
 
-        var html = "<tr>";
-        html += "<td headers='station'>"+result.label+"</td>";
-        html += "<td headers='min'>"+min+sym+"</td>";
-        html += "<td headers='max'>"+max+sym+"</td>";
-        html += "<td headers='avg'>"+avg+sym+"</td>";
-        html += "<td headers='last'>"+last+sym+"</td>";
-        html += "</tr>";
+            var stat = new Object();
+            stat.station = result.label;
+            stat.last = result.data[result.data.length-1][1];
+            stat.min = Math.min.apply(null, result.data.map(function(e) { return e[1]; }));
+            stat.max = Math.max.apply(null, result.data.map(function(e) { return e[1]; }));
 
-        $("#vals").append(html); // existing tbody#vals for statistics table
+            stat.sum = result.data.map(function(e) { return e[1]; }).reduce(function (a,b) { return a + b; });
+            stat.avg = Math.round(stat.sum/result.data.length*10)/10; //round to 1 d.p.
 
-        $.plot($("#chart"), plotdata, { // existing div#chart for flot chart
-            colors: ["red", "green", "blue"],
-            xaxis: { mode: "time", timezone: "browser", timeformat: "%a %H:%M" },
-            yaxis: { },
-            shadowSize: 4,
-            legend: { show: true, position: "nw" },
-            lines: { show: true },
-            points: { show: false }
+            $scope.stats.push(stat);
+            console.log($scope.stats);
+
+            $.plot($("#chart"), $scope.plotdata, { // existing div#chart for flot chart
+                colors: ["red", "green", "blue"],
+                xaxis: { mode: "time", timezone: "browser", timeformat: "%a %H:%M" },
+                yaxis: { },
+                shadowSize: 4,
+                legend: { show: true, position: "nw" },
+                lines: { show: true },
+                points: { show: false }
+            });
+          });
         });
-    });
+    }
+
 }

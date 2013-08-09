@@ -10,6 +10,7 @@
   ],
    "dependencies": {
        "bootstrap": "2.3.2",
-       "flot": "*"
+       "flot": "*",
+       "angular": "1.0.7"
    }
 }

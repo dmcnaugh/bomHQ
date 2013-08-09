@@ -1,24 +1,35 @@
 extends layout
 
 block content
-    h3 #{stat}
+    div(ng-init='statType="#{stat}"; stations=#{JSON.stringify(stations)}')
 
-    div.container
-        //div#chart(style="width:900px;height:300px")
-        div#chart(style="height:300px").span12
-        div.span8.offset2
-            table.table.table-bordered.table-condensed.table-striped
-                thead
-                    tr
-                        th#station Station
-                        th#min Min
-                        th#max Max
-                        th#avg Avg
-                        th#last Last
-                tbody#vals
-    script.
-        var statType = "#{stat}";
-        var stations = "#{stations}".split(",");
+    div(ng-controller="GetStats")
+        h3 {{statType}}
+
+        div.container
+            //div#chart(style="width:900px;height:300px")
+            div#chart(style="height:300px").span12
+            div.span8.offset2
+                table.table.table-bordered.table-condensed.table-striped
+                    thead
+                        tr
+                            th#station Station
+                            th#min Min
+                            th#max Max
+                            th#avg Avg
+                            th#last Last
+                    tbody
+                        tr(ng-repeat="stat in stats")
+                            td {{stat.station}}
+                            td {{stat.min}}
+                                span(ng-bind-html-unsafe="sym")
+                            td {{stat.max}}
+                                span(ng-bind-html-unsafe="sym")
+                            td {{stat.avg}}
+                                span(ng-bind-html-unsafe="sym")
+                            td {{stat.last}}
+                                span(ng-bind-html-unsafe="sym")
+
 
     script(src='/javascripts/chartdata.js')
 
