@@ -9,6 +9,8 @@ block content
         div.container
             //div#chart(style="width:900px;height:300px")
             div#chart(style="height:300px").span12
+            div.span10.offset1
+                input(type='range', ng-model="period", min="20", max="240", step="20", ng-change="update()").span10
             div.span8.offset2
                 table.table.table-bordered.table-condensed.table-striped
                     thead

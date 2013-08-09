@@ -199,12 +199,15 @@ exports.data = function(req, res) {
 
     console.log(req.params);
 
+    var period = parseInt(req.params.period) || 80;
+    console.log(period);
+
     db.collection('OBS_SYD', function(err, collection) {
         if (err) throw err;
         var proj = { reqDate: 1, '_id': 0 };
         proj[req.params.station+'.'+req.params.stat] = 1;
         console.log(proj);
-        collection.find( {}, proj).sort({reqDate: -1}).limit(96).toArray(function(err, result) {
+        collection.find( {}, proj).sort({reqDate: -1}).limit(period).toArray(function(err, result) {
 //            if (err) throw err;
             if(result[0] && result[0][req.params.station] && result[0][req.params.station][req.params.stat] != undefined) {
                 var table = result.map(function(e) { return [ e.reqDate.getTime(), e[req.params.station][req.params.stat]]; });

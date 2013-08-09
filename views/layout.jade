@@ -1,24 +1,18 @@
 doctype 5
 html(ng-app)
-  head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-    include inc/header
+    head
+        title= title
+        link(rel='stylesheet', href='/stylesheets/style.css')
+        include inc/header
     body
 
         h1.page-header= title
 
-        ul.nav.nav-pills
-                li#stats: a(href='/stats') Job Stats
-                li#temp: a(href='/chart/temp') Temp
-                li#rain: a(href='/chart/rain') Rain
-                li#hum: a(href='/chart/hum') Humidity
-                li#press: a(href='/chart/press') Pressure
+        ul(ng-init='tab="#{tab}"').nav.nav-pills
+                li(ng-class="{active: (tab=='stats')}"): a(href='/stats') Job Stats
+                li(ng-class="{active: (tab=='temp')}"): a(href='/chart/temp') Temp
+                li(ng-class="{active: (tab=='rain')}"): a(href='/chart/rain') Rain
+                li(ng-class="{active: (tab=='hum')}"): a(href='/chart/hum') Humidity
+                li(ng-class="{active: (tab=='press')}"): a(href='/chart/press') Pressure
 
-        script.
-            $(document).ready(function() {
-                  $(".active").removeClass("active");
-                  $("##{tab}").addClass("active");
-            });
-
-    block content
+        block content

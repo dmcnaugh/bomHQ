@@ -36,6 +36,7 @@ app.get('/users', user.list);
 app.get('/img', pull.show);
 app.get('/stats', pull.jobStats);
 app.get('/data/:station/:stat', pull.data);
+app.get('/data/:station/:stat/:period', pull.data);
 app.get('/plot/:station/:stat', pull.plot);
 app.get('/chart/:stat', pull.chart);
 
