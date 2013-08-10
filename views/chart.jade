@@ -2,15 +2,15 @@ extends layout
 
 block content
     div(ng-init='statType="#{stat}"; stations=#{JSON.stringify(stations)}')
-
     div(ng-controller="GetStats")
         h3 {{statType}}
 
         div.container
             //div#chart(style="width:900px;height:300px")
             div#chart(style="height:300px").span12
-            div.span10.offset1
-                input(type='range', ng-model="period", min="20", max="240", step="20", ng-change="update()").span10
+            span.span11.offset1
+                input(type='range', ng-model="period", min="20", max="240", step="20", delta="update()").span10
+                &nbsp;{{period/10}} hrs.
             div.span8.offset2
                 table.table.table-bordered.table-condensed.table-striped
                     thead
@@ -31,7 +31,3 @@ block content
                                 span(ng-bind-html-unsafe="sym")
                             td {{stat.last}}
                                 span(ng-bind-html-unsafe="sym")
-
-
-    script(src='/javascripts/chartdata.js')
-
