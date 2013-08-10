@@ -8,7 +8,7 @@ html(ng-app='bomApp')
 
     body
 
-        h1.page-header= title
+        h3.page-header= title
 
         ul(ng-controller="Menu", ng-init='menu.tab="#{tab}"').nav.nav-tabs
             li(ng-class="menu.is('stats')"): a(href='/stats') Job Stats
@@ -23,4 +23,5 @@ html(ng-app='bomApp')
                 li(ng-class="menu.is('hum')"): a(ng-click='menu.change("hum")') Humidity
                 li(ng-class="menu.is('press')"): a(ng-click='menu.change("press")') Pressure
 
+        //ng-view
         block content

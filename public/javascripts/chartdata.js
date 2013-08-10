@@ -8,12 +8,17 @@
 
 var app = angular.module('bomApp', []);
 
+/*
 app.config(function($routeProvider) {
+    $routeProvider.when('/stats', {
+        templateUrl:"/stats"
+    });
     $routeProvider.when('/chart/:statType', {
-        templateUrl:"",
+        templateUrl:"/chart/bob",
         controller: "GetStats"
     });
 });
+*/
 
 app.factory('MenuTab', function() {
 
@@ -32,18 +37,10 @@ app.directive('delta', function() {
     return {
         restrict: 'A',
         link: function(scope, element, attr) {
-            element.bind("mousedown", function () {
+            element.bind("mousedown touchstart", function () {
                 element.deltaTemp = element[0].value;
             });
-            element.bind("touchstart", function () {
-                element.deltaTemp = element[0].value;
-            });
-            element.bind("mouseup", function () {
-                if(element[0].value != element.deltaTemp) {
-                    scope.$apply(attr.delta);
-                }
-            });
-            element.bind("touchend", function () {
+            element.bind("mouseup touchend", function () {
                 if(element[0].value != element.deltaTemp) {
                     scope.$apply(attr.delta);
                 }
@@ -52,7 +49,7 @@ app.directive('delta', function() {
     }
 })
 
-app.controller('Menu', function ($scope, MenuTab) {
+app.controller('Menu', function ($scope, $route, MenuTab) {
 
     $scope.menu = MenuTab;
 
