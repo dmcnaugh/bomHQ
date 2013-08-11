@@ -11,14 +11,20 @@ var express = require('express')
 
 var pull = require('./routes/pull');
 
-var app = express();
+/**
+ * GLOBALS
+ */
+debug = require('express/node_modules/debug')('bom');
+app = express();
 
 // all environments
 app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.favicon());
-app.use(express.logger('dev'));
+if ('development' == app.get('env')) {
+    app.use(express.logger('dev'));
+}
 app.use(express.bodyParser());
 app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
@@ -33,7 +39,10 @@ if ('development' == app.get('env')) {
 
 app.get('/', routes.index);
 app.get('/users', user.list);
-app.get('/img', pull.show);
+app.get('/img/:range/:stamp', pull.show);
+app.get('/imgList', pull.imgList);
+app.get('/imgList/:range/:span', pull.imgList);
+
 app.get('/stats', pull.jobStats);
 app.get('/data/:station/:stat', pull.data);
 app.get('/data/:station/:stat/:period', pull.data);
@@ -41,6 +50,6 @@ app.get('/plot/:station/:stat', pull.plot);
 app.get('/chart/:stat', pull.chart);
 
 http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+  debug('Express server listening on port ' + app.get('port'));
 });
 

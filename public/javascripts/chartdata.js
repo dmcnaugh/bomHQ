@@ -36,14 +36,19 @@ app.factory('MenuTab', function() {
 app.directive('delta', function() {
     return {
         restrict: 'A',
+//        template: "<span>&nbsp;{{period/10}} hrs.</span>",  //doesn't work as it is inside the <input></input>
         link: function(scope, element, attr) {
             element.bind("mousedown touchstart", function () {
-                element.deltaTemp = element[0].value;
+                element.deltaTemp = element.val();
+                scope.deltaShow=true;
+                scope.$apply(scope.deltaShow);
             });
             element.bind("mouseup touchend", function () {
-                if(element[0].value != element.deltaTemp) {
+                if(element.val() != element.deltaTemp) {
                     scope.$apply(attr.delta);
                 }
+                scope.deltaShow=false;
+                scope.$apply(scope.deltaShow);
             });
         }
     }
@@ -63,22 +68,23 @@ app.controller('GetStats', function ($scope, $http, MenuTab) {
         $scope.stats = [];
         $scope.period = 80;
 
-        switch($scope.statType) { // var:statType initialised before this script is included
-            case "temp":
-                $scope.sym = "&deg;C";
-                break;
-            case "press":
-                $scope.sym = "&nbsp;hPa";
-                break;
-            case "rain":
-                $scope.sym = "&nbsp;mm";
-                break;
-            case "hum":
-                $scope.sym = "%";
-                break;
-        };
-
         $scope.update = function() {
+
+            switch($scope.statType) { // var:statType initialised before this script is included
+                case "temp":
+                    $scope.sym = "&deg;C";
+                    break;
+                case "press":
+                    $scope.sym = "&nbsp;hPa";
+                    break;
+                case "rain":
+                    $scope.sym = "&nbsp;mm";
+                    break;
+                case "hum":
+                    $scope.sym = "%";
+                    break;
+            };
+
             plotdata = [];
             $scope.stats = [];
 

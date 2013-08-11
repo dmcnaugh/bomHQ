@@ -21,12 +21,16 @@ var mongoConn = [
     'mongodb://app:app@ds031978.mongolab.com:31978/weather'
 ];
 
-var conn = process.env.MONGODB || mongoConn[1];
+if ('development' == app.get('env')) {
+    var conn = mongoConn[1];
+} else {
+    var conn = process.env.MONGODB || mongoConn[0];
+}
 
 MongoClient.connect(conn, { server: { auto_reconnect: true, socketOptions: { keepAlive: 1}}}, function(err, dbc) {
     if (err) throw err;
     db = dbc;
-    console.log("Connected to " + db.options.url + " : " + db.databaseName + " database");
+    debug("Connected to " + db.options.url + " : " + db.databaseName + " database");
 });
 
 function pad2(number) {
@@ -42,25 +46,25 @@ var REQ = function(BOM_ID) {
     var doc = {};
 
     doc.reqDate = new Date();
-    console.log('REQ:'+doc.reqDate.toUTCString());
+    debug('REQ:'+doc.reqDate.toUTCString());
 
     doc.stamp = doc.reqDate.getUTCFullYear().toString();
     doc.stamp += pad2(doc.reqDate.getUTCMonth()+1);
     doc.stamp += pad2(doc.reqDate.getUTCDate());
     doc.stamp += pad2(doc.reqDate.getUTCHours());
     doc.stamp += pad2(Math.floor(doc.reqDate.getUTCMinutes()/6)*6);
-    console.log('REQ:'+doc.stamp);
+    debug('REQ:'+doc.stamp);
 
     doc.imgFile = imgFile + doc.stamp + '.png';
-    console.log('REQ:'+doc.imgFile);
+    debug('REQ:'+doc.imgFile);
 
     request({url: doc.imgFile, method: 'HEAD'}, function (error, response, body) {
         /*
          *TODO: need to cope with error conditions here
          */
-        console.log(error);
-        console.log('BOM:'+response.statusCode);
-        console.log('BOM:'+response.headers.date);
+//        console.log(error);
+        debug('BOM:'+response.statusCode);
+        debug('BOM:'+response.headers.date);
 
         if (!error && response.statusCode == 200) {
             /*
@@ -95,7 +99,6 @@ var STATS = function() {
 
     doc.reqDate = new Date();
 
-
     var temp = "<td headers=\"obs-temp obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
     var rain = "<td headers=\"obs-rainsince9am obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
     var hum = "<td headers=\"obs-relhum obs-station-%STN%\"> *([0-9]+) *</td>";
@@ -105,9 +108,9 @@ var STATS = function() {
         /*
          *TODO: need to cope with error conditions here
          */
-        console.log(error);
-        console.log('STATS:'+response.statusCode);
-        console.log('STATS:'+response.headers.date);
+//        console.log(error);
+        debug('STATS:'+response.statusCode);
+        debug('STATS:'+response.headers.date);
 
         if (!error && response.statusCode == 200) {
 
@@ -145,20 +148,46 @@ var STATS = function() {
 var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
 var job = [];
 
-//job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
-//job[0].name = bomTargets[0];
-//job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
-//job[1].name = bomTargets[1];
-//job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
-//job[2].name = bomTargets[2];
-//job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
-//job[3].name = 'STATS';
+if ('production' == app.get('env')) {
+    job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
+    job[0].name = bomTargets[0];
+    job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
+    job[1].name = bomTargets[1];
+    job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
+    job[2].name = bomTargets[2];
+    job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
+    job[3].name = 'STATS';
 
+    debug(job);
+}
+
+exports.imgList = function(req, res) {
+
+    var range = req.params.range || 'IDR713';
+    var span = parseInt(req.params.span) || 10;
+
+    var proj = { stamp: 1, _id: 0 };
+
+    db.collection(range, function(err, collection) {
+        if (err) throw err;
+        collection.find({}, proj).sort({stamp: -1}).limit(span).toArray(function(err, result) {
+            if (err) throw err;
+            var table = result.map(function(e) { return parseInt(e.stamp); });
+            table.sort(function (a,b) {return a - b;}); //(re)sort by reqDate (ascending)
+
+            //console.log(result);
+            res.send(table);
+
+        });
+    });
+}
 
 exports.show = function(req, res) {
-    db.collection('IDR712', function(err, collection) {
+    var range = req.params.range || 'IDR713';
+
+    db.collection(range, function(err, collection) {
         if (err) throw err;
-        collection.findOne( { }, function(err, result) {
+        collection.findOne( {stamp: req.params.stamp }, function(err, result) {
             if (err) throw err;
             res.type(result.header['content-type']);
             res.send(result.image.buffer);
@@ -197,16 +226,16 @@ exports.plot = function(req, res) {
 
 exports.data = function(req, res) {
 
-    console.log(req.params);
+//    console.log(req.params);
 
     var period = parseInt(req.params.period) || 80;
-    console.log(period);
+//    console.log(period);
 
     db.collection('OBS_SYD', function(err, collection) {
         if (err) throw err;
         var proj = { reqDate: 1, '_id': 0 };
         proj[req.params.station+'.'+req.params.stat] = 1;
-        console.log(proj);
+//        console.log(proj);
         collection.find( {}, proj).sort({reqDate: -1}).limit(period).toArray(function(err, result) {
 //            if (err) throw err;
             if(result[0] && result[0][req.params.station] && result[0][req.params.station][req.params.stat] != undefined) {
@@ -218,7 +247,8 @@ exports.data = function(req, res) {
 
 //                res.render('table', { title: 'Station Stats', station: req.params.station, stat: req.params.stat, data: table });
             } else {
-                res.send({ label: req.params.station, data: [[]] });
+                res.send({ });
+//                res.send({ label: req.params.station, data: [[]] });
 //                res.render('table', { title: 'No Station Stats', station: req.params.station, stat: req.params.stat, data: [] });
             }
         });
@@ -227,6 +257,6 @@ exports.data = function(req, res) {
 
 exports.chart = function(req, res) {
 
-    console.log(req.params);
+//    console.log(req.params);
     res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});
 }
