@@ -191,7 +191,7 @@ exports.show = function(req, res) {
             if (err) throw err;
             res.type(result.header['content-type']);
             res.send(result.image.buffer);
-            console.log(result.image.buffer.length)
+//            console.log(result.image.buffer.length)
         });
     });
 }
@@ -259,4 +259,8 @@ exports.chart = function(req, res) {
 
 //    console.log(req.params);
     res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});
+}
+
+exports.radar = function(req,res) {
+    res.render('radar', { title: 'Rain Radar', tab: 'radar'});
 }

@@ -54,6 +54,20 @@ app.directive('delta', function() {
     }
 })
 
+app.directive('pause', function($timeout) {
+    return {
+        restrict: 'A',
+        link: function(scope, element, attr) {
+            element.bind("mousedown touchstart", function () {
+                $timeout.cancel(scope.prom);
+            });
+            element.bind("mouseup touchend", function () {
+                scope.prom = $timeout(scope.timerDo, 2000);
+            });
+        }
+    }
+})
+
 app.controller('Menu', function ($scope, $route, MenuTab) {
 
     $scope.menu = MenuTab;
@@ -124,5 +138,97 @@ app.controller('GetStats', function ($scope, $http, MenuTab) {
             $scope.statType = val;
             $scope.update();
         });
+
+});
+
+app.controller('RadarImage', function ($scope, $http, $timeout, MenuTab) {
+
+    $scope.menu = MenuTab;
+    $scope.images = [];
+    $scope.range = 'IDR713';
+    $scope.span = 20;
+    $scope.view = [];
+    $scope.stamp = [];
+
+    $scope.back = true;  //TODO: why did these break when I put it under $scope.vis...?
+    $scope.topo = true;
+    $scope.water = true;
+    $scope.rail = false;
+    $scope.loc = true;
+    $scope.SH = true;
+
+    $scope.speed = 125;
+
+
+    $scope.timerDo = function() {
+
+        $scope.view.unshift(false);
+        last = $scope.view.pop();
+        $scope.view[0] = last;
+        if(last) {
+            $scope.slide = 0;
+        } else {
+            $scope.slide++;
+        }
+
+        if($scope.view[$scope.view.length-1] == true) {
+            $scope.prom = $timeout($scope.timerDo, 2000);
+        } else {
+            $scope.prom = $timeout($scope.timerDo, $scope.speed);
+        }
+    }
+
+    $scope.refresh = function() {
+
+        if($scope.prom) $timeout.cancel($scope.prom);
+
+        $scope.images = [];
+        $scope.view = [];
+        $scope.stamp = [];
+
+        $http.get("/imgList/"+$scope.range+"/"+$scope.span).success(function(result) {
+
+            //console.log(result);
+
+            for(var i=0; i<result.length; i++) {
+                $scope.view.push(false);
+
+                res = result[i].toString();
+
+                year = parseInt(res.slice(0,4));
+                month = parseInt(res.slice(4,6));
+                day = parseInt(res.slice(6,8));
+                hour = parseInt(res.slice(8,10));
+                min = parseInt(res.slice(10,12));
+
+                utcDate = new Date(0);
+                utcDate.setUTCFullYear(year);
+                utcDate.setUTCMonth(month);
+                utcDate.setUTCDate(day);
+                utcDate.setUTCHours(hour);
+                utcDate.setUTCMinutes(min);
+
+                $scope.stamp.push(utcDate);
+                $scope.images.push("/img/"+$scope.range+"/"+result[i]);
+            }
+
+            $scope.slide = $scope.view.length - 1;
+            $scope.view[$scope.slide] = true;
+
+            $scope.prom = $timeout($scope.timerDo, 2000);
+
+        })
+    }
+
+    $scope.update = function() {
+
+        for(var i=0; i<$scope.view.length; i++) {
+            $scope.view[i] = false;
+        }
+        $scope.view[$scope.slide] = true;
+
+    }
+
+    $scope.refresh();
 
 });

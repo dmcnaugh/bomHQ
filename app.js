@@ -9,13 +9,14 @@ var express = require('express')
   , http = require('http')
   , path = require('path');
 
-var pull = require('./routes/pull');
-
 /**
  * GLOBALS
  */
 debug = require('express/node_modules/debug')('bom');
 app = express();
+
+var pull = require('./routes/pull');
+
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -42,6 +43,7 @@ app.get('/users', user.list);
 app.get('/img/:range/:stamp', pull.show);
 app.get('/imgList', pull.imgList);
 app.get('/imgList/:range/:span', pull.imgList);
+app.get('/radar', pull.radar);
 
 app.get('/stats', pull.jobStats);
 app.get('/data/:station/:stat', pull.data);
