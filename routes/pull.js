@@ -148,18 +148,20 @@ var STATS = function() {
 var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
 var job = [];
 
-if ('production' == app.get('env')) {
-    job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
-    job[0].name = bomTargets[0];
-    job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
-    job[1].name = bomTargets[1];
-    job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
-    job[2].name = bomTargets[2];
-    job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
-    job[3].name = 'STATS';
 
-    debug(job);
+if ('production' != app.get('env')) {
+    REQ = function() {} ;
+    STATS = function() {};
 }
+
+job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
+job[0].name = bomTargets[0];
+job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
+job[1].name = bomTargets[1];
+job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
+job[2].name = bomTargets[2];
+job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
+job[3].name = 'STATS';
 
 exports.imgList = function(req, res) {
 
@@ -174,8 +176,6 @@ exports.imgList = function(req, res) {
             if (err) throw err;
             var table = result.map(function(e) { return parseInt(e.stamp); });
             table.sort(function (a,b) {return a - b;}); //(re)sort by reqDate (ascending)
-
-            //console.log(result);
             res.send(table);
 
         });
@@ -191,73 +191,47 @@ exports.show = function(req, res) {
             if (err) throw err;
             res.type(result.header['content-type']);
             res.send(result.image.buffer);
-//            console.log(result.image.buffer.length)
         });
     });
 }
 
 exports.jobStats = function(req, res) {
-
-    res.render('jobs', { title: 'Job Stats', tab: "stats", jobs: job });
-}
-
-exports.plot = function(req, res) {
-
-    console.log(req.params);
-
-    db.collection('OBS_SYD', function(err, collection) {
-        if (err) throw err;
-        var proj = { reqDate: 1, '_id': 0 };
-        proj[req.params.station+'.'+req.params.stat] = 1;
-        console.log(proj);
-        collection.find( {}, proj).sort({reqDate: -1}).limit(96).toArray(function(err, result) {
-//            if (err) throw err;
-            if(result[0] && result[0][req.params.station] && result[0][req.params.station][req.params.stat] != undefined) {
-                var table = result.map(function(e) { return [ e.reqDate.getTime(), e[req.params.station][req.params.stat]]; });
-//                console.log(table);
-                table.sort(function (a,b) {return a[0] - b[0];}); //(re)sort by reqDate (ascending)
-                res.render('table', { title: 'Station Stats', station: req.params.station, stat: req.params.stat, data: table });
-            } else {
-                res.render('table', { title: 'No Station Stats', station: req.params.station, stat: req.params.stat, data: [] });
-            }
-        });
+    res.render('jobs', { title: 'Job Stats', tab: "jobs", jobs: job.map(function(e) {
+        return {
+            name: e.name,
+            running: e.running,
+            at: e.cronTime.sendAt().toLocaleString(),
+            timeout: Math.floor(e.cronTime.getTimeout()/1000),
+            cronTime: e.cronTime.toString()
+        };
+      })
     });
 }
 
 exports.data = function(req, res) {
 
-//    console.log(req.params);
-
     var period = parseInt(req.params.period) || 80;
-//    console.log(period);
 
     db.collection('OBS_SYD', function(err, collection) {
         if (err) throw err;
         var proj = { reqDate: 1, '_id': 0 };
         proj[req.params.station+'.'+req.params.stat] = 1;
-//        console.log(proj);
         collection.find( {}, proj).sort({reqDate: -1}).limit(period).toArray(function(err, result) {
 //            if (err) throw err;
             if(result[0] && result[0][req.params.station] && result[0][req.params.station][req.params.stat] != undefined) {
                 var table = result.map(function(e) { return [ e.reqDate.getTime(), e[req.params.station][req.params.stat]]; });
-//                console.log(table);
                 table.sort(function (a,b) {return a[0] - b[0];}); //(re)sort by reqDate (ascending)
 
                 res.send({ label: req.params.station, data: table });
 
-//                res.render('table', { title: 'Station Stats', station: req.params.station, stat: req.params.stat, data: table });
             } else {
                 res.send({ });
-//                res.send({ label: req.params.station, data: [[]] });
-//                res.render('table', { title: 'No Station Stats', station: req.params.station, stat: req.params.stat, data: [] });
             }
         });
     });
 }
 
 exports.chart = function(req, res) {
-
-//    console.log(req.params);
     res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});
 }
 

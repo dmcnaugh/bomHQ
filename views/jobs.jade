@@ -2,23 +2,20 @@ extends layout
 
 block content
 
+    div(ng-init='xjobs=#{JSON.stringify(jobs)}')
+
     h3 Statistics
 
-    unless jobs[0]
-        p No jobs scheduled
-
-    if jobs[0]
-        table.table
-            tr
-                th Name
-                th Running?
-                th Time
-                th in (sec.)
-                th Cron
-            for row in jobs
-              tr
-                td #{row.name}
-                td #{row.running}
-                td #{row.cronTime.sendAt()}
-                td #{row.cronTime.getTimeout()/1000}
-                td #{row.cronTime}
+    table.table
+        tr
+            th Name
+            th Running?
+            th Time
+            th in (sec.)
+            th Cron
+        tr(ng-repeat="row in xjobs")
+            td {{row.name}}
+            td {{row.running}}
+            td {{row.at}}
+            td {{row.timeout}}
+            td {{row.cronTime}}

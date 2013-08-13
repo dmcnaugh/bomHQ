@@ -11,18 +11,18 @@ html(ng-app='bomApp')
         h3.page-header= title
 
         ul(ng-controller="Menu", ng-init='menu.tab="#{tab}"').nav.nav-tabs
-            if (tab=='stats'||tab=='radar')
+            if (tab=='jobs'||tab=='radar')
                 li(ng-class="menu.is('temp')"): a(href='/chart/temp') Temperature
                 li(ng-class="menu.is('rain')"): a(href='/chart/rain') Rain
                 li(ng-class="menu.is('hum')"): a(href='/chart/hum') Humidity
                 li(ng-class="menu.is('press')"): a(href='/chart/press') Pressure
-            unless (tab=='stats'||tab=='radar')
+            unless (tab=='jobs'||tab=='radar')
                 li(ng-class="menu.is('temp')"): a(ng-click='menu.change("temp")') Temperature
                 li(ng-class="menu.is('rain')"): a(ng-click='menu.change("rain")') Rain
                 li(ng-class="menu.is('hum')"): a(ng-click='menu.change("hum")') Humidity
                 li(ng-class="menu.is('press')"): a(ng-click='menu.change("press")') Pressure
             li(ng-class="menu.is('radar')"): a(href='/radar') Rain Radar
-            li(ng-class="menu.is('stats')"): a(href='/stats') Job Stats
+            li(ng-class="menu.is('jobs')"): a(href='/jobs') Job Stats
 
         //ng-view
         block content
