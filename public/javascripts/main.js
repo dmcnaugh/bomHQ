@@ -16,15 +16,15 @@ app.config(function($routeProvider, $locationProvider) {
         controller: function(MenuTab) { MenuTab.change('');}
     });
     $routeProvider.when('/jobs', {
-        templateUrl:"/jobs",
+        templateUrl:"/Jobs",
         controller: "JobStats"
     });
     $routeProvider.when('/chart/:statType', {
-        templateUrl:"/chart",
+        templateUrl:"/Chart",
         controller: "GetStats"
     });
     $routeProvider.when('/radar', {
-        templateUrl:"/radar",
+        templateUrl:"/Radar",
         controller: "RadarImage"
     });
     //$routeProvider.otherwise({redirectTo: '/'});

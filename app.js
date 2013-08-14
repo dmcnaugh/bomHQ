@@ -44,14 +44,14 @@ if ('development' == app.get('env')) {
     app.get('/img/:range/:stamp', pull.show);
     app.get('/imgList', pull.imgList);
     app.get('/imgList/:range/:span', pull.imgList);
-    app.get('/radar', pull.radar);
+    app.get('/Radar', pull.radar);
 
     app.get('/data/:station/:stat', pull.data);
     app.get('/data/:station/:stat/:period', pull.data);
-    app.get('/chart', pull.chart)
+    app.get('/Chart', pull.chart)
 
     app.get('/jobstats', pull.jobStats);
-    app.get('/jobs', pull.jobs);
+    app.get('/Jobs', pull.jobs);
 
 http.createServer(app).listen(app.get('port'), function(){
   debug('Express server listening on port ' + app.get('port'));
