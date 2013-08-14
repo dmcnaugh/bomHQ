@@ -3,7 +3,7 @@
  * User: dmcnaughton
  * Date: 9/07/13
  * Time: 4:50 PM
- * To change this template use File | Settings | File Templates.
+ * TODO: needs some well planned separation of the services i.e. fetch data from BOM and store in mongodb, the mongodb connection awy from the routes.
  */
 var request = require('request');
 var mongo = require('mongodb');
@@ -162,6 +162,18 @@ job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); 
 job[2].name = bomTargets[2];
 job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
 job[3].name = 'STATS';
+
+/**
+ * The services end here ^^^
+ *
+ * There are plenty of dependencies between the two including
+ *      job[]
+ *      stations[]
+ *      db  - the mongodb database connection
+ *
+ * And the routes start here vvv
+ */
+
 
 exports.imgList = function(req, res) {
 

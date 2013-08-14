@@ -20,6 +20,10 @@ app.config(function($routeProvider) {
 });
 */
 
+/**
+ * Service: MenuTab
+ * handles making the current menu tab .active - could certainly be done better
+ */
 app.factory('MenuTab', function() {
 
     return { tab: "BUCKLEY",
@@ -33,6 +37,11 @@ app.factory('MenuTab', function() {
 
 });
 
+/**
+ * Directive: delta
+ * works similarly to, but as an alternative to ng-change, and only causes a change in scope once the control (presumably an <input type='range'/>) is 'released'
+ * n.b. works for mouse and for touch
+ */
 app.directive('delta', function() {
     return {
         restrict: 'A',
@@ -54,6 +63,12 @@ app.directive('delta', function() {
     }
 })
 
+/**
+ * Directive: pause
+ * cancels timeout events that are automatically changing an input (presumably an <input type='range'/>) while it is 'pressed' until it is 'released'
+ * n.b. works for mouse and for touch
+ * TODO: needs some reworking to be more general - maybe the timer promises should be attached to the element not the scope
+ */
 app.directive('pause', function($timeout) {
     return {
         restrict: 'A',
@@ -83,6 +98,8 @@ app.controller('GetStats', function ($scope, $http, MenuTab) {
         $scope.period = 80;
 
         $scope.update = function() {
+
+            //TODO: {{statType}} is kind of redundant as it just mirrors {{tab}}, needs to be refactored out?
 
             switch($scope.statType) { // var:statType initialised before this script is included
                 case "temp":
