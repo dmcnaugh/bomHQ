@@ -8,17 +8,32 @@
 
 var app = angular.module('bomApp', []);
 
-/*
-app.config(function($routeProvider) {
-    $routeProvider.when('/stats', {
-        templateUrl:"/stats"
+
+app.config(function($routeProvider, $locationProvider) {
+
+    $routeProvider.when('/', {
+        templateUrl: "hello.html",
+        controller: function(MenuTab) { MenuTab.change('');}
+    });
+    $routeProvider.when('/jobs', {
+        templateUrl:"/jobs",
+        controller: "JobStats"
     });
     $routeProvider.when('/chart/:statType', {
-        templateUrl:"/chart/bob",
+        templateUrl:"/chart",
         controller: "GetStats"
     });
+    $routeProvider.when('/radar', {
+        templateUrl:"/radar",
+        controller: "RadarImage"
+    });
+    //$routeProvider.otherwise({redirectTo: '/'});
+    $locationProvider.html5Mode(true);
 });
-*/
+
+
+//app.run(function($route){})
+
 
 /**
  * Service: MenuTab
@@ -83,84 +98,95 @@ app.directive('pause', function($timeout) {
     }
 })
 
-app.controller('Menu', function ($scope, $route, MenuTab) {
+
+app.controller('Menu', function ($scope, MenuTab) {
 
     $scope.menu = MenuTab;
 
 });
 
-app.controller('GetStats', function ($scope, $http, MenuTab) {
+app.controller('JobStats', function($scope, $http, MenuTab) {
 
-        $scope.menu = MenuTab;
+    MenuTab.change('jobs');
 
-        var plotdata = [];
-        $scope.stats = [];
-        $scope.period = 80;
+    $http.get("/jobstats").success(function(result) {
 
-        $scope.update = function() {
+        $scope.jobs = result;
 
-            //TODO: {{statType}} is kind of redundant as it just mirrors {{tab}}, needs to be refactored out?
+    });
+});
 
-            switch($scope.statType) { // var:statType initialised before this script is included
-                case "temp":
-                    $scope.sym = "&deg;C";
-                    break;
-                case "press":
-                    $scope.sym = "&nbsp;hPa";
-                    break;
-                case "rain":
-                    $scope.sym = "&nbsp;mm";
-                    break;
-                case "hum":
-                    $scope.sym = "%";
-                    break;
-            };
+app.controller('GetStats', function ($scope, $http, $routeParams, MenuTab) {
 
-            plotdata = [];
-            $scope.stats = [];
+    $scope.stations = [ 'canterbury' , 'sydney-observatory-hill', 'sydney-olympic-park']; //TODO: would prefer to get this from server side
 
-            for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
+    MenuTab.change($routeParams.statType);
+    $scope.statType = $routeParams.statType;
 
-                $http.get("/data/"+$scope.stations[stn]+"/"+$scope.statType+"/"+$scope.period).success(function(result) {
+    var plotdata = [];
+    $scope.stats = [];
+    $scope.period = 80;
 
-                    plotdata.push(result);
+    $scope.update = function() {
 
-                    if(result.data[0].length == 0) return;
-
-                    var stat = new Object();
-                    stat.station = result.label;
-                    stat.last = result.data[result.data.length-1][1];
-                    stat.min = Math.min.apply(null, result.data.map(function(e) { return e[1]; }));
-                    stat.max = Math.max.apply(null, result.data.map(function(e) { return e[1]; }));
-
-                    stat.sum = result.data.map(function(e) { return e[1]; }).reduce(function (a,b) { return a + b; });
-                    stat.avg = Math.round(stat.sum/result.data.length*10)/10; //round to 1 d.p.
-
-                    $scope.stats.push(stat);
-
-                    $.plot($("#chart"), plotdata, { // existing div#chart for flot chart
-                        colors: ["red", "green", "blue"],
-                        xaxis: { mode: "time", timezone: "browser", timeformat: "%a %H:%M" },
-                        yaxis: { },
-                        shadowSize: 4,
-                        legend: { show: true, position: "nw" },
-                        lines: { show: true },
-                        points: { show: false }
-                    });
-                });
-            }
+        switch($scope.statType) { // var:statType initialised before this script is included
+            case "temp":
+                $scope.sym = "&deg;C";
+                break;
+            case "press":
+                $scope.sym = "&nbsp;hPa";
+                break;
+            case "rain":
+                $scope.sym = "&nbsp;mm";
+                break;
+            case "hum":
+                $scope.sym = "%";
+                break;
         };
 
-        $scope.$watch('menu.tab', function(val) {
-            $scope.statType = val;
-            $scope.update();
-        });
+        plotdata = [];
+        $scope.stats = [];
+
+        for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
+
+            $http.get("/data/"+$scope.stations[stn]+"/"+$scope.statType+"/"+$scope.period).success(function(result) {
+
+                if(result.data == undefined) return;  //TODO: not sure if this is the best test
+
+                plotdata.push(result);
+
+                var stat = new Object();
+                stat.station = result.label;
+                stat.last = result.data[result.data.length-1][1];
+                stat.min = Math.min.apply(null, result.data.map(function(e) { return e[1]; }));
+                stat.max = Math.max.apply(null, result.data.map(function(e) { return e[1]; }));
+
+                stat.sum = result.data.map(function(e) { return e[1]; }).reduce(function (a,b) { return a + b; });
+                stat.avg = Math.round(stat.sum/result.data.length*10)/10; //round to 1 d.p.
+
+                $scope.stats.push(stat);
+
+                $.plot($("#chart"), plotdata, { // existing div#chart for flot chart
+                    colors: ["red", "green", "blue"],
+                    xaxis: { mode: "time", timezone: "browser", timeformat: "%a %H:%M" },
+                    yaxis: { },
+                    shadowSize: 4,
+                    legend: { show: true, position: "nw" },
+                    lines: { show: true },
+                    points: { show: false }
+                });
+            });
+        }
+    };
+
+    $scope.update();
 
 });
 
-app.controller('RadarImage', function ($scope, $http, $timeout, MenuTab) {
+app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, MenuTab) {
 
-    $scope.menu = MenuTab;
+    MenuTab.change('radar');
+
     $scope.images = [];
     $scope.range = 'IDR713';
     $scope.span = 20;

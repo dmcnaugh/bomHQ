@@ -25,8 +25,8 @@ if ('development' == app.get('env')) {
 }
 app.use(express.bodyParser());
 app.use(express.methodOverride());
-app.use(express.cookieParser('your secret here'));
-app.use(express.session());
+//app.use(express.cookieParser('your secret here'));
+//app.use(express.session());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -39,7 +39,7 @@ if ('development' == app.get('env')) {
  * TODO: Routes should be moved into a separate routes module.
  */
 
-    app.get('/', function(req, res) { res.redirect('/jobs'); });
+    app.get('/', function(req, res) { res.render('layout') });
 
     app.get('/img/:range/:stamp', pull.show);
     app.get('/imgList', pull.imgList);
@@ -48,9 +48,10 @@ if ('development' == app.get('env')) {
 
     app.get('/data/:station/:stat', pull.data);
     app.get('/data/:station/:stat/:period', pull.data);
-    app.get('/chart/:stat', pull.chart);
+    app.get('/chart', pull.chart)
 
-    app.get('/jobs', pull.jobStats);
+    app.get('/jobstats', pull.jobStats);
+    app.get('/jobs', pull.jobs);
 
 http.createServer(app).listen(app.get('port'), function(){
   debug('Express server listening on port ' + app.get('port'));

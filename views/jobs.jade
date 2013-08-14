@@ -1,21 +1,15 @@
-extends layout
+h3 Jobs
 
-block content
-
-    div(ng-init='xjobs=#{JSON.stringify(jobs)}')
-
-    h3 Statistics
-
-    table.table
-        tr
-            th Name
-            th Running?
-            th Time
-            th in (sec.)
-            th Cron
-        tr(ng-repeat="row in xjobs")
-            td {{row.name}}
-            td {{row.running}}
-            td {{row.at}}
-            td {{row.timeout}}
-            td {{row.cronTime}}
+table.table
+    tr
+        th Name
+        th Running?
+        th Time
+        th in (sec.)
+        th Cron
+    tr(ng-repeat="row in jobs")
+        td {{row.name}}
+        td {{row.running}}
+        td {{row.at}}
+        td {{row.timeout}}
+        td {{row.cronTime}}

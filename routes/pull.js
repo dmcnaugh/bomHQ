@@ -28,7 +28,7 @@ if ('development' == app.get('env')) {
 }
 
 MongoClient.connect(conn, { server: { auto_reconnect: true, socketOptions: { keepAlive: 1}}}, function(err, dbc) {
-    if (err) throw err;
+    if (err) throw 'MongoDB Error: Failed to connect to: ' + conn;
     db = dbc;
     debug("Connected to " + db.options.url + " : " + db.databaseName + " database");
 });
@@ -207,8 +207,12 @@ exports.show = function(req, res) {
     });
 }
 
+exports.jobs = function(req, res) {
+    res.render('jobs', { title: 'Job Stats' });
+};
+
 exports.jobStats = function(req, res) {
-    res.render('jobs', { title: 'Job Stats', tab: "jobs", jobs: job.map(function(e) {
+    res.send(job.map(function(e) {
         return {
             name: e.name,
             running: e.running,
@@ -217,7 +221,7 @@ exports.jobStats = function(req, res) {
             cronTime: e.cronTime.toString()
         };
       })
-    });
+    );
 }
 
 exports.data = function(req, res) {

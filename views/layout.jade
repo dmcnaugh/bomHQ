@@ -1,28 +1,26 @@
 doctype 5
-html(ng-app='bomApp')
+html
     head
         title= title
         link(rel='stylesheet', href='/stylesheets/style.css')
         include inc/header
         script(src='/javascripts/main.js')
 
-    body
+    body(ng-app='bomApp')
 
-        h3.page-header= title
+        div.navbar.navbar
+            div.navbar-inner
 
-        ul(ng-controller="Menu", ng-init='menu.tab="#{tab}"').nav.nav-tabs
-            if (tab=='jobs'||tab=='radar')
-                li(ng-class="menu.is('temp')"): a(href='/chart/temp') Temperature
-                li(ng-class="menu.is('rain')"): a(href='/chart/rain') Rain
-                li(ng-class="menu.is('hum')"): a(href='/chart/hum') Humidity
-                li(ng-class="menu.is('press')"): a(href='/chart/press') Pressure
-            unless (tab=='jobs'||tab=='radar')
-                li(ng-class="menu.is('temp')"): a(ng-click='menu.change("temp")') Temperature
-                li(ng-class="menu.is('rain')"): a(ng-click='menu.change("rain")') Rain
-                li(ng-class="menu.is('hum')"): a(ng-click='menu.change("hum")') Humidity
-                li(ng-class="menu.is('press')"): a(ng-click='menu.change("press")') Pressure
-            li(ng-class="menu.is('radar')"): a(href='/radar') Rain Radar
-            li(ng-class="menu.is('jobs')"): a(href='/jobs') Job Stats
+                a(href='/').brand BOM Stats:
 
-        //ng-view
-        block content
+                ul(ng-controller="Menu").nav
+
+                    li(ng-class="menu.is('temp')"): a(href='/chart/temp') Temperature
+                    li(ng-class="menu.is('rain')"): a(href='/chart/rain') Rain
+                    li(ng-class="menu.is('hum')"): a(href='/chart/hum') Humidity
+                    li(ng-class="menu.is('press')"): a(href='/chart/press') Pressure
+
+                    li(ng-class="menu.is('radar')"): a(href='/radar') Rain Radar
+                    li(ng-class="menu.is('jobs')"): a(href='/jobs') Job Stats
+
+        div(ng-view)

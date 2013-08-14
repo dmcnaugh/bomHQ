@@ -1,30 +1,26 @@
-extends layout
-
-block content
-    div(ng-init='statType="#{stat}"; stations=#{JSON.stringify(stations)}')
-    div(ng-controller="GetStats").container
-        //div#chart(style="width:900px;height:300px")
-        div#chart(style="height:300px").span12
-        span.span11.offset1
-            input(type='range', ng-model="period", min="20", max="240", step="20", delta="update()").span10
-            span(ng-show="deltaShow") &nbsp;{{period/10}} hrs.
-        div.span8.offset2
-            table.table.table-bordered.table-condensed.table-striped
-                thead
-                    tr
-                        th#station Station
-                        th#min Min
-                        th#max Max
-                        th#avg Avg
-                        th#last Last
-                tbody
-                    tr(ng-repeat="stat in stats")
-                        td {{stat.station}}
-                        td {{stat.min}}
-                            span(ng-bind-html-unsafe="sym")
-                        td {{stat.max}}
-                            span(ng-bind-html-unsafe="sym")
-                        td {{stat.avg}}
-                            span(ng-bind-html-unsafe="sym")
-                        td {{stat.last}}
-                            span(ng-bind-html-unsafe="sym")
+div.container
+    //div#chart(style="width:900px;height:300px")
+    div#chart(style="height:300px").span12
+    span.span11.offset1
+        input(type='range', ng-model="period", min="20", max="240", step="20", delta="update()").span10
+        span(ng-show="deltaShow") &nbsp;{{period/10}} hrs.
+    div.span8.offset2
+        table.table.table-bordered.table-condensed.table-striped
+            thead
+                tr
+                    th#station Station
+                    th#min Min
+                    th#max Max
+                    th#avg Avg
+                    th#last Last
+            tbody
+                tr(ng-repeat="stat in stats")
+                    td {{stat.station}}
+                    td {{stat.min}}
+                        span(ng-bind-html-unsafe="sym")
+                    td {{stat.max}}
+                        span(ng-bind-html-unsafe="sym")
+                    td {{stat.avg}}
+                        span(ng-bind-html-unsafe="sym")
+                    td {{stat.last}}
+                        span(ng-bind-html-unsafe="sym")
