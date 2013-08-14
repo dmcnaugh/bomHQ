@@ -27,8 +27,8 @@ app.config(function($routeProvider, $locationProvider) {
         templateUrl:"/Radar",
         controller: "RadarImage"
     });
-    //$routeProvider.otherwise({redirectTo: '/'});
-    $locationProvider.html5Mode(true);
+    $routeProvider.otherwise({redirectTo: '/'});
+//    $locationProvider.html5Mode(true);
 });
 
 
