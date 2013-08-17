@@ -23,27 +23,27 @@ div.container-fluid
                     option(value="63") 16 fps
                     option(value="42") 24 fps
                 label.checkbox Land
-                    input(type='checkbox', ng-model="back")
+                    input(type='checkbox', ng-model="vis.back")
                 label.checkbox Topographics
-                    input(type='checkbox', ng-model="topo")
+                    input(type='checkbox', ng-model="vis.topo")
                 label.checkbox Water/Rivers
-                    input(type='checkbox', ng-model="water")
+                    input(type='checkbox', ng-model="vis.water")
                 label.checkbox Rail
-                    input(type='checkbox', ng-model="rail")
+                    input(type='checkbox', ng-model="vis.rail")
                 label.checkbox Locations
-                    input(type='checkbox', ng-model="loc")
+                    input(type='checkbox', ng-model="vis.loc")
                 label.checkbox Range
-                    input(type='checkbox', ng-model="SH")
+                    input(type='checkbox', ng-model="vis.SH")
 
         div.span9
             div#radar(style="height:512px; width:512px")
-                img(ng-src="/images/{{range}}.back.png", ng-show="back")
-                img(ng-src="/images/{{range}}.topo.png", ng-show="topo")
-                img(ng-src="/images/{{range}}.water.png", ng-show="water")
+                img(ng-src="/images/{{range}}.back.png", ng-show="vis.back")
+                img(ng-src="/images/{{range}}.topo.png", ng-show="vis.topo")
+                img(ng-src="/images/{{range}}.water.png", ng-show="vis.water")
                 img(ng-repeat="img in images", ng-src="{{img}}", ng-show="view[$index]")
-                img(ng-src="/images/{{range}}.rail.png", ng-show="rail")
-                img(ng-src="/images/{{range}}.loc.png", ng-show="loc")
-                img(ng-src="/images/{{range}}.SH.png", ng-show="SH")
+                img(ng-src="/images/{{range}}.rail.png", ng-show="vis.rail")
+                img(ng-src="/images/{{range}}.loc.png", ng-show="vis.loc")
+                img(ng-src="/images/{{range}}.SH.png", ng-show="vis.SH")
 
             input(type='range', ng-model="slide", min="0", max="{{view.length-1}}", step="1", pause, ng-change="update()", style="width:512px")
             div(style="width:512px; text-align: center")

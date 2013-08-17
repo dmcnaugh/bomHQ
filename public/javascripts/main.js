@@ -96,8 +96,62 @@ app.directive('pause', function($timeout) {
             });
         }
     }
-})
+});
 
+app.directive('countdown', function($timeout) {
+    return {
+        restrict: 'A',
+        scope: {
+            ngModel: '=',
+            zerotrigger: '&'
+        },
+        template: '{{ngModel}}',
+        link: function(scope, element, attr) {
+
+            var prom = null;
+
+            var countdown = function () {
+
+                if(scope.ngModel == 0) {
+                    scope.zerotrigger();
+                } else {
+                    scope.ngModel--;
+                    scope.$apply();
+                    prom = $timeout(countdown, 1000);
+                }
+            };
+
+            element.on('$destroy', function() {
+                $timeout.cancel(prom);
+            });
+
+            prom = $timeout(countdown, 1000);
+
+        }
+    }
+});
+
+app.directive('chart', function() {
+    return {
+        restrict: 'E',
+        link: function (scope, element, attr) {
+
+            var chart = null;
+            var param = JSON.parse(attr['chartparam']);
+
+            scope.$watch(attr['ngModel'], function(newVal, oldVal) {
+                if(newVal.length == 0) return;
+                if(!chart) {
+                    chart = $.plot(element, newVal , param);
+                } else {
+                    chart.setData(newVal);
+                    chart.setupGrid();
+                    chart.draw();
+                }
+            }, true);
+        }
+    }
+});
 
 app.controller('Menu', function ($scope, MenuTab) {
 
@@ -109,11 +163,17 @@ app.controller('JobStats', function($scope, $http, MenuTab) {
 
     MenuTab.change('jobs');
 
-    $http.get("/jobstats").success(function(result) {
+    $scope.update = function() {
 
-        $scope.jobs = result;
+        $http.get("/jobstats").success(function(result) {
 
-    });
+            $scope.jobs = result;
+
+        });
+    };
+
+    $scope.update();
+
 });
 
 app.controller('GetStats', function ($scope, $http, $routeParams, MenuTab) {
@@ -123,7 +183,7 @@ app.controller('GetStats', function ($scope, $http, $routeParams, MenuTab) {
     MenuTab.change($routeParams.statType);
     $scope.statType = $routeParams.statType;
 
-    var plotdata = [];
+    $scope.plotdata = [];
     $scope.stats = [];
     $scope.period = 80;
 
@@ -144,7 +204,7 @@ app.controller('GetStats', function ($scope, $http, $routeParams, MenuTab) {
                 break;
         };
 
-        plotdata = [];
+        $scope.plotdata = [];
         $scope.stats = [];
 
         for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
@@ -153,7 +213,7 @@ app.controller('GetStats', function ($scope, $http, $routeParams, MenuTab) {
 
                 if(result.data == undefined) return;  //TODO: not sure if this is the best test
 
-                plotdata.push(result);
+                $scope.plotdata.push(result);
 
                 var stat = new Object();
                 stat.station = result.label;
@@ -166,15 +226,6 @@ app.controller('GetStats', function ($scope, $http, $routeParams, MenuTab) {
 
                 $scope.stats.push(stat);
 
-                $.plot($("#chart"), plotdata, { // existing div#chart for flot chart
-                    colors: ["red", "green", "blue"],
-                    xaxis: { mode: "time", timezone: "browser", timeformat: "%a %H:%M" },
-                    yaxis: { },
-                    shadowSize: 4,
-                    legend: { show: true, position: "nw" },
-                    lines: { show: true },
-                    points: { show: false }
-                });
             });
         }
     };
@@ -193,12 +244,14 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, Me
     $scope.view = [];
     $scope.stamp = [];
 
-    $scope.back = true;  //TODO: why did these break when I put it under $scope.vis...?
-    $scope.topo = true;
-    $scope.water = true;
-    $scope.rail = false;
-    $scope.loc = true;
-    $scope.SH = true;
+    $scope.vis = {
+        back: true,
+        topo: true,
+        water: true,
+        rail: false,
+        loc: true,
+        SH: true
+    };
 
     $scope.speed = 125;
 

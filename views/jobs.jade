@@ -11,5 +11,5 @@ table.table
         td {{row.name}}
         td {{row.running}}
         td {{row.at}}
-        td {{row.timeout}}
+        td(countdown, ng-model="row.timeout", zerotrigger="update()")
         td {{row.cronTime}}
