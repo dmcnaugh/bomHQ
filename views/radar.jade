@@ -45,6 +45,7 @@ div.container-fluid
                 img(ng-src="/images/{{range}}.loc.png", ng-show="vis.loc")
                 img(ng-src="/images/{{range}}.SH.png", ng-show="vis.SH")
 
-            input(type='range', ng-model="slide", min="0", max="{{view.length-1}}", step="1", pause, ng-change="update()", style="width:512px")
+            input(type='range', ng-model="slide", min="0", max="{{view.length-1}}", step="1", pause, bind="view", style="width:512px")
+            //input(type='range', ng-model="slide", min="0", max="{{view.length-1}}", step="1", pause, ng-change="update()", style="width:512px")
             div(style="width:512px; text-align: center")
-                h4.well.well-small {{stamp[slide].toString()}}
+                h4.well.well-small {{ stamp[slide] | stamp2date | date: 'EEE MMM dd/MM/yy hh:mm a [UTCZ]' }}

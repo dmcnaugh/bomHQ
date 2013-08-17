@@ -52,6 +52,24 @@ app.factory('MenuTab', function() {
 
 });
 
+app.filter('stamp2date', function() {
+    return function(stamp) {
+
+        if(stamp) {
+            var res = stamp.toString();
+            var utcDate = new Date(0);
+
+            utcDate.setUTCFullYear(parseInt(res.slice(0,4)));
+            utcDate.setUTCMonth(parseInt(res.slice(4,6)) - 1);
+            utcDate.setUTCDate(parseInt(res.slice(6,8)));
+            utcDate.setUTCHours(parseInt(res.slice(8,10)));
+            utcDate.setUTCMinutes(parseInt(res.slice(10,12)));
+
+            return utcDate;
+        }
+    }
+});
+
 /**
  * Directive: delta
  * works similarly to, but as an alternative to ng-change, and only causes a change in scope once the control (presumably an <input type='range'/>) is 'released'
@@ -93,6 +111,12 @@ app.directive('pause', function($timeout) {
             });
             element.bind("mouseup touchend", function () {
                 scope.prom = $timeout(scope.timerDo, 2000);
+            });
+
+            scope.$watch(attr['ngModel'], function(newVal, oldVal) {
+                scope[attr['bind']][oldVal] = false;
+                scope[attr['bind']][newVal] = true;
+
             });
         }
     }
@@ -256,6 +280,9 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, Me
     $scope.speed = 125;
 
 
+    /**
+     * TODO: I wonder if some if this should be moved to the directive:pause or similar
+     */
     $scope.timerDo = function() {
 
         $scope.view.unshift(false);
@@ -284,27 +311,10 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, Me
 
         $http.get("/imgList/"+$scope.range+"/"+$scope.span).success(function(result) {
 
-            //console.log(result);
+            $scope.stamp = result;
 
-            for(var i=0; i<result.length; i++) {
+            for(var i=0, l=result.length; i < l; i++) {
                 $scope.view.push(false);
-
-                res = result[i].toString();
-
-                year = parseInt(res.slice(0,4));
-                month = parseInt(res.slice(4,6));
-                day = parseInt(res.slice(6,8));
-                hour = parseInt(res.slice(8,10));
-                min = parseInt(res.slice(10,12));
-
-                utcDate = new Date(0);
-                utcDate.setUTCFullYear(year);
-                utcDate.setUTCMonth(month);
-                utcDate.setUTCDate(day);
-                utcDate.setUTCHours(hour);
-                utcDate.setUTCMinutes(min);
-
-                $scope.stamp.push(utcDate);
                 $scope.images.push("/img/"+$scope.range+"/"+result[i]);
             }
 
@@ -314,15 +324,6 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, Me
             $scope.prom = $timeout($scope.timerDo, 2000);
 
         })
-    }
-
-    $scope.update = function() {
-
-        for(var i=0; i<$scope.view.length; i++) {
-            $scope.view[i] = false;
-        }
-        $scope.view[$scope.slide] = true;
-
     }
 
     $scope.refresh();
