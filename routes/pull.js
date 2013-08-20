@@ -12,7 +12,7 @@ var cron = require('cron');
 var BSON = mongo.BSONPure;
 
 var MongoClient = mongo.MongoClient;
-var db;
+db = null;
 
 var mongoConn = [
     'mongodb://localhost/weather',
@@ -22,7 +22,7 @@ var mongoConn = [
 ];
 
 if ('development' == app.get('env')) {
-    var conn = mongoConn[1];
+    var conn = mongoConn[0];
 } else {
     var conn = process.env.MONGODB || mongoConn[0];
 }
@@ -80,6 +80,9 @@ var REQ = function(BOM_ID) {
                         if (err) throw err;
                         collection.insert( doc , function(err, result) {
                             if (err) throw err;
+
+                            ioSrv.sockets.emit('radar', { range: BOM_ID, stamp: doc.stamp });
+
                         });
                     });
 
@@ -134,6 +137,11 @@ var STATS = function() {
                     if (err) throw err;
                     collection.insert( doc , function(err, result) {
                         if (err) throw err;
+
+                        doc.content = null;
+                        doc.reqDate = doc.reqDate.getTime();
+                        ioSrv.sockets.emit('stats', doc);
+
                     });
                 });
 
@@ -146,13 +154,13 @@ var STATS = function() {
 };
 
 var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
-var job = [];
+job = [];
 
 
-if ('production' != app.get('env')) {
-    REQ = function() {} ;
-    STATS = function() {};
-}
+//if ('production' != app.get('env')) {
+//    REQ = function() {} ;
+//    STATS = function() {};
+//}
 
 job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
 job[0].name = bomTargets[0];
@@ -174,26 +182,6 @@ job[3].name = 'STATS';
  * And the routes start here vvv
  */
 
-
-exports.imgList = function(req, res) {
-
-    var range = req.params.range || 'IDR713';
-    var span = parseInt(req.params.span) || 10;
-
-    var proj = { stamp: 1, _id: 0 };
-
-    db.collection(range, function(err, collection) {
-        if (err) throw err;
-        collection.find({}, proj).sort({stamp: -1}).limit(span).toArray(function(err, result) {
-            if (err) throw err;
-            var table = result.map(function(e) { return parseInt(e.stamp); });
-            table.sort(function (a,b) {return a - b;}); //(re)sort by reqDate (ascending)
-            res.send(table);
-
-        });
-    });
-}
-
 exports.show = function(req, res) {
     var range = req.params.range || 'IDR713';
 
@@ -210,42 +198,6 @@ exports.show = function(req, res) {
 exports.jobs = function(req, res) {
     res.render('jobs', { title: 'Job Stats' });
 };
-
-exports.jobStats = function(req, res) {
-    res.send(job.map(function(e) {
-        return {
-            name: e.name,
-            running: e.running,
-            at: e.cronTime.sendAt().toLocaleString(),
-            timeout: Math.floor(e.cronTime.getTimeout()/1000),
-            cronTime: e.cronTime.toString()
-        };
-      })
-    );
-}
-
-exports.data = function(req, res) {
-
-    var period = parseInt(req.params.period) || 80;
-
-    db.collection('OBS_SYD', function(err, collection) {
-        if (err) throw err;
-        var proj = { reqDate: 1, '_id': 0 };
-        proj[req.params.station+'.'+req.params.stat] = 1;
-        collection.find( {}, proj).sort({reqDate: -1}).limit(period).toArray(function(err, result) {
-//            if (err) throw err;
-            if(result[0] && result[0][req.params.station] && result[0][req.params.station][req.params.stat] != undefined) {
-                var table = result.map(function(e) { return [ e.reqDate.getTime(), e[req.params.station][req.params.stat]]; });
-                table.sort(function (a,b) {return a[0] - b[0];}); //(re)sort by reqDate (ascending)
-
-                res.send({ label: req.params.station, data: table });
-
-            } else {
-                res.send({ });
-            }
-        });
-    });
-}
 
 exports.chart = function(req, res) {
     res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});

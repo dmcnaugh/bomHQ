@@ -10,6 +10,7 @@
     "jade": "0.32.*",
     "mongodb": "*",
     "cron": "*",
-    "request": "*"
+    "request": "*",
+    "socket.io": "~0.9.16"
   }
 }

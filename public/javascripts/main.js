@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-var app = angular.module('bomApp', []);
+var app = angular.module('bomApp', ['btford.socket-io']);
 
 
 app.config(function($routeProvider, $locationProvider) {
@@ -183,13 +183,13 @@ app.controller('Menu', function ($scope, MenuTab) {
 
 });
 
-app.controller('JobStats', function($scope, $http, MenuTab) {
+app.controller('JobStats', function($scope, $http, socket, MenuTab) {
 
     MenuTab.change('jobs');
 
     $scope.update = function() {
 
-        $http.get("/jobstats").success(function(result) {
+        socket.emit("jobstats", { }, function(result) {
 
             $scope.jobs = result;
 
@@ -200,65 +200,102 @@ app.controller('JobStats', function($scope, $http, MenuTab) {
 
 });
 
-app.controller('GetStats', function ($scope, $http, $routeParams, MenuTab) {
+app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTab) {
 
     $scope.stations = [ 'canterbury' , 'sydney-observatory-hill', 'sydney-olympic-park']; //TODO: would prefer to get this from server side
 
     MenuTab.change($routeParams.statType);
     $scope.statType = $routeParams.statType;
 
+    switch($scope.statType) { // var:statType initialised before this script is included
+        case "temp":
+            $scope.sym = "&deg;C";
+            break;
+        case "press":
+            $scope.sym = "&nbsp;hPa";
+            break;
+        case "rain":
+            $scope.sym = "&nbsp;mm";
+            break;
+        case "hum":
+            $scope.sym = "%";
+            break;
+    };
+
     $scope.plotdata = [];
     $scope.stats = [];
     $scope.period = 80;
 
-    $scope.update = function() {
+    $scope.updateStats = function(station) {
 
-        switch($scope.statType) { // var:statType initialised before this script is included
-            case "temp":
-                $scope.sym = "&deg;C";
-                break;
-            case "press":
-                $scope.sym = "&nbsp;hPa";
-                break;
-            case "rain":
-                $scope.sym = "&nbsp;mm";
-                break;
-            case "hum":
-                $scope.sym = "%";
-                break;
+        var statPos = $scope.stats.map(function(v) {return v.station;}).indexOf(station);
+        if(statPos >= 0) { $scope.stats.splice(statPos, 1); }
+
+        var plotPos = $scope.plotdata.map(function(v) {return v.label;}).indexOf(station);
+        if(plotPos >= 0) {
+
+            var result = $scope.plotdata[plotPos];
+
+            var stat = {};
+            stat.station = result.label;
+            stat.last = result.data[result.data.length-1][1];
+            stat.min = Math.min.apply(null, result.data.map(function(e) { return e[1]; }));
+            stat.max = Math.max.apply(null, result.data.map(function(e) { return e[1]; }));
+
+            stat.sum = result.data.map(function(e) { return e[1]; }).reduce(function (a,b) { return a + b; });
+            stat.avg = Math.round(stat.sum/result.data.length*10)/10; //round to 1 d.p.
+
+            $scope.stats.push(stat);
+
         };
 
+    };
+
+    $scope.update = function() {
+
         $scope.plotdata = [];
-        $scope.stats = [];
 
         for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
 
-            $http.get("/data/"+$scope.stations[stn]+"/"+$scope.statType+"/"+$scope.period).success(function(result) {
+            socket.emit('data', { station: $scope.stations[stn], type: $scope.statType, period: $scope.period }, function(result) {
 
                 if(result.data == undefined) return;  //TODO: not sure if this is the best test
 
                 $scope.plotdata.push(result);
 
-                var stat = new Object();
-                stat.station = result.label;
-                stat.last = result.data[result.data.length-1][1];
-                stat.min = Math.min.apply(null, result.data.map(function(e) { return e[1]; }));
-                stat.max = Math.max.apply(null, result.data.map(function(e) { return e[1]; }));
-
-                stat.sum = result.data.map(function(e) { return e[1]; }).reduce(function (a,b) { return a + b; });
-                stat.avg = Math.round(stat.sum/result.data.length*10)/10; //round to 1 d.p.
-
-                $scope.stats.push(stat);
+                $scope.updateStats(result.label);
 
             });
         }
     };
 
+    socket.forward('stats', $scope);
+    $scope.$on('socket:stats', function (ev, res) {
+
+        console.log(res);
+
+        for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
+
+            var pos = $scope.plotdata.map(function(v) {return v.label;}).indexOf($scope.stations[stn]);
+
+//            console.log(pos, res.reqDate, typeof res.reqDate, res[$scope.stations[stn]][$scope.statType]);
+//            console.log(res.reqDate);
+
+            $scope.plotdata[pos].data.push([ res.reqDate, res[$scope.stations[stn]][$scope.statType] ]);
+
+            $scope.updateStats($scope.stations[stn]);
+
+        };
+
+        $scope.$apply($scope.plotdata);
+
+    });
+
     $scope.update();
 
 });
 
-app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, MenuTab) {
+app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, socket, MenuTab) {
 
     MenuTab.change('radar');
 
@@ -278,7 +315,6 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, Me
     };
 
     $scope.speed = 125;
-
 
     /**
      * TODO: I wonder if some if this should be moved to the directive:pause or similar
@@ -303,13 +339,13 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, Me
 
     $scope.refresh = function() {
 
-        if($scope.prom) $timeout.cancel($scope.prom);
+        if($scope.prom) { $timeout.cancel($scope.prom); $scope.prom = null; }
 
         $scope.images = [];
         $scope.view = [];
         $scope.stamp = [];
 
-        $http.get("/imgList/"+$scope.range+"/"+$scope.span).success(function(result) {
+        socket.emit('imglist', { range: $scope.range, span: $scope.span }, function(result) {
 
             $scope.stamp = result;
 
@@ -323,8 +359,24 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, Me
 
             $scope.prom = $timeout($scope.timerDo, 2000);
 
-        })
-    }
+        });
+    };
+
+    socket.forward('radar', $scope);
+    $scope.$on('socket:radar', function (ev, res) {
+        console.log(res);
+        if(res.range == $scope.range) {
+            $scope.view.push(false);
+            $scope.stamp.push(res.stamp);
+            $scope.images.push("/img/"+$scope.range+"/"+res.stamp);
+        };
+        /**
+         * TODO: maybe we should
+         * $scope.view.shift
+         * $scope.stamp.shift
+         * $scope.images.shift
+         */
+    });
 
     $scope.refresh();
 
