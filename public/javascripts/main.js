@@ -27,6 +27,10 @@ app.config(function($routeProvider, $locationProvider) {
         templateUrl:"/Radar",
         controller: "RadarImage"
     });
+    $routeProvider.when('/pm', {
+        templateUrl:"pm.html",
+        controller: "ProcessMonitor"
+    });
     $routeProvider.otherwise({redirectTo: '/'});
 //    $locationProvider.html5Mode(true);
 });
@@ -200,6 +204,24 @@ app.controller('JobStats', function($scope, $http, socket, MenuTab) {
 
 });
 
+app.controller('ProcessMonitor', function($scope, $http, MenuTab) {
+
+    MenuTab.change('pm');
+
+    $scope.update = function() {
+
+        $http.get("http://debian-box.local:9615").success(function(result) {
+
+            $scope.pm = result;
+            console.log(result);
+
+        });
+    };
+
+    $scope.update();
+
+});
+
 app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTab) {
 
     $scope.stations = [ 'canterbury' , 'sydney-observatory-hill', 'sydney-olympic-park']; //TODO: would prefer to get this from server side
@@ -278,13 +300,16 @@ app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTa
 
             var pos = $scope.plotdata.map(function(v) {return v.label;}).indexOf($scope.stations[stn]);
 
-//            console.log(pos, res.reqDate, typeof res.reqDate, res[$scope.stations[stn]][$scope.statType]);
+            console.log(pos, res.reqDate, typeof res.reqDate, res[$scope.stations[stn]][$scope.statType]);
 //            console.log(res.reqDate);
 
-            $scope.plotdata[pos].data.push([ res.reqDate, res[$scope.stations[stn]][$scope.statType] ]);
+            if(pos >= 0) {
 
-            $scope.updateStats($scope.stations[stn]);
+                $scope.plotdata[pos].data.push([ res.reqDate, res[$scope.stations[stn]][$scope.statType] ]);
 
+                $scope.updateStats($scope.stations[stn]);
+
+            };
         };
 
         $scope.$apply($scope.plotdata);

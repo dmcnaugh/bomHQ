@@ -22,7 +22,7 @@ var mongoConn = [
 ];
 
 if ('development' == app.get('env')) {
-    var conn = mongoConn[0];
+    var conn = mongoConn[1];
 } else {
     var conn = process.env.MONGODB || mongoConn[0];
 }
@@ -157,10 +157,10 @@ var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
 job = [];
 
 
-//if ('production' != app.get('env')) {
-//    REQ = function() {} ;
-//    STATS = function() {};
-//}
+if ('production' != app.get('env')) {
+    REQ = function() {} ;
+    STATS = function() {};
+}
 
 job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
 job[0].name = bomTargets[0];
