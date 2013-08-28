@@ -1,0 +1,51 @@
+div.container-fluid
+    div.row-fluid
+        div.span3
+            form
+                label Range
+                    select(ng-model="range", ng-change="refresh()").span6
+                        option(value="IDR714") 64km
+                        option(value="IDR713") 128km
+                        option(value="IDR712") 256km
+                label Period
+                    select(ng-model="span", ng-change="refresh()").span6
+                        option(value="10") 1 hour
+                        option(value="20") 2 hours
+                        option(value="40") 4 hours
+                        option(value="60") 6 hours
+                        option(value="120") 12 hours
+                        option(value="240") 24 hours
+                label Speed
+                    select(ng-model="speed").span6
+                        option(value="500") 2 fps
+                        option(value="250") 4 fps
+                        option(value="125") 8 fps
+                        option(value="63") 16 fps
+                        option(value="42") 24 fps
+                label.checkbox Land
+                    input(type='checkbox', ng-model="vis.back")
+                label.checkbox Topographics
+                    input(type='checkbox', ng-model="vis.topo")
+                label.checkbox Water/Rivers
+                    input(type='checkbox', ng-model="vis.water")
+                label.checkbox Rail
+                    input(type='checkbox', ng-model="vis.rail")
+                label.checkbox Locations
+                    input(type='checkbox', ng-model="vis.loc")
+                label.checkbox Range
+                    input(type='checkbox', ng-model="vis.SH")
+
+        div.span9
+            div#radar(style="height:512px; width:512px")
+                img(ng-src="/images/{{range}}.back.png", ng-show="vis.back")
+                img(ng-src="/images/{{range}}.topo.png", ng-show="vis.topo")
+                img(ng-src="/images/{{range}}.water.png", ng-show="vis.water")
+                img(ng-repeat="img in images", ng-src="{{img}}", ng-show="view[$index]")
+                img(ng-src="/images/{{range}}.rail.png", ng-show="vis.rail")
+                img(ng-src="/images/{{range}}.loc.png", ng-show="vis.loc")
+                img(ng-src="/images/{{range}}.SH.png", ng-show="vis.SH")
+
+            input(type='range', ng-model="slide", min="0", max="{{view.length-1}}", step="1", pause, bind="view", style="width:512px")
+            //input(type='range', ng-model="slide", min="0", max="{{view.length-1}}", step="1", pause, ng-change="update()", style="width:512px")
+            div(style="width:512px; text-align: center")
+                h4.well.well-small {{ stamp[slide] | stamp2date | date: 'EEE MMM dd/MM/yy hh:mm a [UTCZ]' }}

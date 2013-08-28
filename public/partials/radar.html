@@ -1,0 +1,61 @@
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span3">
+      <form>
+        <label>Range
+          <select ng-model="range" ng-change="refresh()" class="span6">
+            <option value="IDR714">64km</option>
+            <option value="IDR713">128km</option>
+            <option value="IDR712">256km</option>
+          </select>
+        </label>
+        <label>Period
+          <select ng-model="span" ng-change="refresh()" class="span6">
+            <option value="10">1 hour</option>
+            <option value="20">2 hours</option>
+            <option value="40">4 hours</option>
+            <option value="60">6 hours</option>
+            <option value="120">12 hours</option>
+            <option value="240">24 hours</option>
+          </select>
+        </label>
+        <label>Speed
+          <select ng-model="speed" class="span6">
+            <option value="500">2 fps</option>
+            <option value="250">4 fps</option>
+            <option value="125">8 fps</option>
+            <option value="63">16 fps</option>
+            <option value="42">24 fps</option>
+          </select>
+        </label>
+        <label class="checkbox">Land
+          <input type="checkbox" ng-model="vis.back"/>
+        </label>
+        <label class="checkbox">Topographics
+          <input type="checkbox" ng-model="vis.topo"/>
+        </label>
+        <label class="checkbox">Water/Rivers
+          <input type="checkbox" ng-model="vis.water"/>
+        </label>
+        <label class="checkbox">Rail
+          <input type="checkbox" ng-model="vis.rail"/>
+        </label>
+        <label class="checkbox">Locations
+          <input type="checkbox" ng-model="vis.loc"/>
+        </label>
+        <label class="checkbox">Range
+          <input type="checkbox" ng-model="vis.SH"/>
+        </label>
+      </form>
+    </div>
+    <div class="span9">
+      <div id="radar" style="height:512px; width:512px"><img ng-src="/images/{{range}}.back.png" ng-show="vis.back"/><img ng-src="/images/{{range}}.topo.png" ng-show="vis.topo"/><img ng-src="/images/{{range}}.water.png" ng-show="vis.water"/><img ng-repeat="img in images" ng-src="{{img}}" ng-show="view[$index]"/><img ng-src="/images/{{range}}.rail.png" ng-show="vis.rail"/><img ng-src="/images/{{range}}.loc.png" ng-show="vis.loc"/><img ng-src="/images/{{range}}.SH.png" ng-show="vis.SH"/></div>
+      <input type="range" ng-model="slide" min="0" max="{{view.length-1}}" step="1" pause="pause" bind="view" style="width:512px"/>
+      <!--input(type='range', ng-model="slide", min="0", max="{{view.length-1}}", step="1", pause, ng-change="update()", style="width:512px")-->
+      <div style="width:512px; text-align: center">
+        <h4 class="well well-small">{{ stamp[slide] | stamp2date | date: 'EEE MMM dd/MM/yy hh:mm a [UTCZ]' }}</h4>
+      </div>
+    </div>
+  </div>
+</div>

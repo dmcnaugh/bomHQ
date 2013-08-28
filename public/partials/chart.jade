@@ -1,0 +1,30 @@
+div.container
+    //div#chart(style="width:900px;height:300px")
+    chart(style="height:300px",
+        ng-model="plotdata",
+        chartparam='{ "colors": ["red", "green", "blue"], "xaxis": { "mode": "time", "timezone": "browser", "timeformat": "%a %H:%M" }, "yaxis": { }, "shadowSize": 4, "legend": { "show": true, "position": "nw" }, "lines": { "show": true }, "points": { "show": false } }'
+        ).span12
+
+    span.span11.offset1
+        input(type='range', ng-model="period", min="20", max="240", step="20", delta="update()").span10
+        span(ng-show="deltaShow") &nbsp;{{period/10}} hrs.
+    div.span8.offset2
+        table.table.table-bordered.table-condensed.table-striped
+            thead
+                tr
+                    th#station Station
+                    th#min Min
+                    th#max Max
+                    th#avg Avg
+                    th#last Last
+            tbody
+                tr(ng-repeat="stat in stats")
+                    td {{stat.station}}
+                    td {{stat.min}}
+                        span(ng-bind-html-unsafe="sym")
+                    td {{stat.max}}
+                        span(ng-bind-html-unsafe="sym")
+                    td {{stat.avg}}
+                        span(ng-bind-html-unsafe="sym")
+                    td {{stat.last}}
+                        span(ng-bind-html-unsafe="sym")

@@ -1,0 +1,42 @@
+h2.well Host: {{pm.system_info.hostname}} Uptime: {{pm.system_info.uptime / 60 / 60 / 24 | number:2}} days
+
+h4 CPU
+
+table.table.table-striped.span12
+    tr
+        th Model
+        th Speed
+        th User
+        th Nice
+        th Sys
+        th Idle
+        th IRQ
+    tr(ng-repeat="cpu in pm.monit.cpu")
+        td {{cpu.model}}
+        td {{cpu.speed}}
+        td {{cpu.times.user}
+        td {{cpu.times.nice}}
+        td {{cpu.times.sys}}
+        td {{cpu.times.idle}}
+        td {{cpu.times.irq}}
+
+h4 Processes
+
+table.table.table-striped.span12
+    tr
+        th ID
+        th PID
+        th Status
+        th CPU
+        th Memory
+        th User
+        th Script
+
+    tr(ng-repeat="pro in pm.processes | orderBy:'pm_id'")
+        td {{pro.pm_id}}
+        td {{pro.pid}}
+        td {{pro.status}}
+        td {{pro.monit.cpu * 100 | number:2}} %
+        td {{pro.monit.memory / 1024 / 1024 | number:2}} Mb
+        td {{pro.opts.USER}}
+        td {{pro.opts.pm_exec_path}}

@@ -1,0 +1,35 @@
+doctype 5
+html
+    head
+        title= title
+        link(rel='stylesheet', href='/stylesheets/style.css')
+        meta(name='viewport', content='width=device-width, initial-scale=1.0')
+        link(rel='stylesheet', href='/lib/bootstrap/docs/assets/css/bootstrap.css')
+        link(rel='stylesheet', href='/lib/bootstrap/docs/assets/css/bootstrap-responsive.css')
+        script(src='/lib/jquery/jquery.js')
+        script(src='/lib/flot/jquery.flot.js')
+        script(src='/lib/flot/jquery.flot.time.js')
+        script(src='/lib/angular/angular.js')
+        script(src='/socket.io/socket.io.js')
+        script(src='/lib/angular-socket-io/socket.js')
+        script(src='/javascripts/main.js')
+
+    body(ng-app='bomApp')
+
+        div.navbar.navbar
+            div.navbar-inner
+
+                a(href='/').brand BOM Stats:
+
+                ul(ng-controller="Menu").nav
+
+                    li(ng-class="menu.is('temp')"): a(href='#/chart/temp') Temperature
+                    li(ng-class="menu.is('rain')"): a(href='#/chart/rain') Rain
+                    li(ng-class="menu.is('hum')"): a(href='#/chart/hum') Humidity
+                    li(ng-class="menu.is('press')"): a(href='#/chart/press') Pressure
+
+                    li(ng-class="menu.is('radar')"): a(href='#/radar') Rain Radar
+                    li(ng-class="menu.is('jobs')"): a(href='#/jobs') Job Stats
+                    li(ng-class="menu.is('pm')"): a(href='#/pm') Processes
+
+        div(ng-view)

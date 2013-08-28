@@ -195,14 +195,14 @@ exports.show = function(req, res) {
     });
 }
 
-exports.jobs = function(req, res) {
-    res.render('jobs', { title: 'Job Stats' });
-};
-
-exports.chart = function(req, res) {
-    res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});
-}
-
-exports.radar = function(req,res) {
-    res.render('radar', { title: 'Rain Radar', tab: 'radar'});
-}
+//exports.jobs = function(req, res) {
+//    res.render('jobs', { title: 'Job Stats' });
+//};
+//
+//exports.chart = function(req, res) {
+//    res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});
+//}
+//
+//exports.radar = function(req,res) {
+//    res.render('radar', { title: 'Rain Radar', tab: 'radar'});
+//}

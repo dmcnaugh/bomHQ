@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/lib/bootstrap/docs/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="/lib/bootstrap/docs/assets/css/bootstrap-responsive.css">
+    <script src="/lib/jquery/jquery.js"></script>
+    <script src="/lib/flot/jquery.flot.js"></script>
+    <script src="/lib/flot/jquery.flot.time.js"></script>
+    <script src="/lib/angular/angular.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/lib/angular-socket-io/socket.js"></script>
+    <script src="/javascripts/main.js"></script>
+  </head>
+  <body ng-app="bomApp">
+    <div class="navbar navbar">
+      <div class="navbar-inner"><a href="/" class="brand">BOM Stats:</a>
+        <ul ng-controller="Menu" class="nav">
+          <li ng-class="menu.is('temp')"><a href="#/chart/temp">Temperature</a></li>
+          <li ng-class="menu.is('rain')"><a href="#/chart/rain">Rain</a></li>
+          <li ng-class="menu.is('hum')"><a href="#/chart/hum">Humidity</a></li>
+          <li ng-class="menu.is('press')"><a href="#/chart/press">Pressure</a></li>
+          <li ng-class="menu.is('radar')"><a href="#/radar">Rain Radar</a></li>
+          <li ng-class="menu.is('jobs')"><a href="#/jobs">Job Stats</a></li>
+          <li ng-class="menu.is('pm')"><a href="#/pm">Processes</a></li>
+        </ul>
+      </div>
+    </div>
+    <div ng-view></div>
+  </body>
+</html>

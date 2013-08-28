@@ -1,0 +1,28 @@
+
+<div class="container">
+  <!--div#chart(style="width:900px;height:300px")-->
+  <chart style="height:300px" ng-model="plotdata" chartparam="{ &quot;colors&quot;: [&quot;red&quot;, &quot;green&quot;, &quot;blue&quot;], &quot;xaxis&quot;: { &quot;mode&quot;: &quot;time&quot;, &quot;timezone&quot;: &quot;browser&quot;, &quot;timeformat&quot;: &quot;%a %H:%M&quot; }, &quot;yaxis&quot;: { }, &quot;shadowSize&quot;: 4, &quot;legend&quot;: { &quot;show&quot;: true, &quot;position&quot;: &quot;nw&quot; }, &quot;lines&quot;: { &quot;show&quot;: true }, &quot;points&quot;: { &quot;show&quot;: false } }" class="span12"></chart><span class="span11 offset1">
+    <input type="range" ng-model="period" min="20" max="240" step="20" delta="update()" class="span10"/><span ng-show="deltaShow">&nbsp;{{period/10}} hrs.</span></span>
+  <div class="span8 offset2">
+    <table class="table table-bordered table-condensed table-striped">
+      <thead>
+        <tr>
+          <th id="station">Station</th>
+          <th id="min">Min</th>
+          <th id="max">Max</th>
+          <th id="avg">Avg</th>
+          <th id="last">Last</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="stat in stats">
+          <td>{{stat.station}}</td>
+          <td>{{stat.min}}<span ng-bind-html-unsafe="sym"></span></td>
+          <td>{{stat.max}}<span ng-bind-html-unsafe="sym"></span></td>
+          <td>{{stat.avg}}<span ng-bind-html-unsafe="sym"></span></td>
+          <td>{{stat.last}}<span ng-bind-html-unsafe="sym"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

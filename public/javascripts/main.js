@@ -12,23 +12,23 @@ var app = angular.module('bomApp', ['btford.socket-io']);
 app.config(function($routeProvider, $locationProvider) {
 
     $routeProvider.when('/', {
-        templateUrl: "hello.html",
+        templateUrl: "partials/hello.html",
         controller: function(MenuTab) { MenuTab.change('');}
     });
     $routeProvider.when('/jobs', {
-        templateUrl:"/Jobs",
+        templateUrl:"partials/jobs.html",
         controller: "JobStats"
     });
     $routeProvider.when('/chart/:statType', {
-        templateUrl:"/Chart",
+        templateUrl:"partials/chart.html",
         controller: "GetStats"
     });
     $routeProvider.when('/radar', {
-        templateUrl:"/Radar",
+        templateUrl:"partials/radar.html",
         controller: "RadarImage"
     });
     $routeProvider.when('/pm', {
-        templateUrl:"pm.html",
+        templateUrl:"partials/pm.html",
         controller: "ProcessMonitor"
     });
     $routeProvider.otherwise({redirectTo: '/'});

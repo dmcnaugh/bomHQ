@@ -1,0 +1,18 @@
+
+<h3>Jobs</h3>
+<table class="table">
+  <tr>
+    <th>Name</th>
+    <th>Running?</th>
+    <th>Time</th>
+    <th>in (sec.)</th>
+    <th>Cron</th>
+  </tr>
+  <tr ng-repeat="row in jobs">
+    <td>{{row.name}}</td>
+    <td>{{row.running}}</td>
+    <td>{{row.at}}</td>
+    <td countdown="countdown" ng-model="row.timeout" zerotrigger="update()"></td>
+    <td>{{row.cronTime}}</td>
+  </tr>
+</table>
