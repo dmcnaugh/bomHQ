@@ -11,6 +11,8 @@
     "mongodb": "*",
     "cron": "*",
     "request": "*",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "passport": "*",
+    "passport-google": "*"
   }
 }

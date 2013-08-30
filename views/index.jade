@@ -1,0 +1,72 @@
+doctype 5
+html
+    head
+        title= title
+        link(rel='stylesheet', href='/stylesheets/style.css')
+        meta(name='viewport', content='width=device-width, initial-scale=1.0')
+        link(rel='stylesheet', href='/lib/bootstrap/docs/assets/css/bootstrap.css')
+        link(rel='stylesheet', href='/lib/bootstrap/docs/assets/css/bootstrap-responsive.css')
+        script(src='/lib/bootstrap/docs/assets/js/jquery.js')
+        script(src='/lib/bootstrap/docs/assets/js/bootstrap-dropdown.js')
+        //<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+        //link(href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css", rel="stylesheet")
+        link(href="/lib/font-awesome/css/font-awesome.min.css", rel="stylesheet")
+
+
+    body(ng-app='bomApp')
+
+        div.container
+            span.span12
+                if user
+                    div.btn-group.pull-right
+                        button(data-toggle="dropdown").btn.dropdown-toggle.btn-link
+                            span #{user.emails[0].value}&nbsp;
+                            i.icon-caret-down
+                        ul.dropdown-menu
+                            li.disabled
+                                a(href='') #{user.name.givenName}
+                            li.disabled
+                                a(href='') #{user.name.familyName}
+                            li.divider
+                            li
+                                a(href='/account') Details
+                            li.divider
+                            li
+                                a(href='/auth/logout') Log-out
+                else
+                    a(href="/auth/google").pull-right
+                        button(onclick="$('#spin').removeClass('hide'); $('#user').addClass('hide')").btn.btn-link Sign-in
+                        i.icon-spinner.icon-spin.icon-large.hide#spin
+                        i.icon-user#user
+
+            span.span12
+                div.navbar
+                    div.navbar-inner
+
+                        a(href='/').brand BOM Stats:
+
+                        if user
+                            ul(ng-controller="Menu").nav
+
+                                li(ng-class="menu.is('temp')"): a(href='#/chart/temp') Temperature
+                                li(ng-class="menu.is('rain')"): a(href='#/chart/rain') Rain
+                                li(ng-class="menu.is('hum')"): a(href='#/chart/hum') Humidity
+                                li(ng-class="menu.is('press')"): a(href='#/chart/press') Pressure
+
+                                li(ng-class="menu.is('radar')"): a(href='#/radar') Rain Radar
+                                li(ng-class="menu.is('jobs')"): a(href='#/jobs') Job Stats
+                                li(ng-class="menu.is('pm')"): a(href='#/pm') Processes
+
+                if user
+                    div(ng-view)
+
+                    //script(src='/lib/jquery/jquery.js')
+                    script(src='/lib/flot/jquery.flot.js')
+                    script(src='/lib/flot/jquery.flot.time.js')
+                    script(src='/lib/angular/angular.js')
+                    script(src='/socket.io/socket.io.js')
+                    script(src='/lib/angular-socket-io/socket.js')
+                    script(src='/javascripts/main.js')
+
+                else
+                    h1.hero-unit Please sign-in using Google to authenticate.
