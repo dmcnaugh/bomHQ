@@ -35,8 +35,8 @@ passport.deserializeUser(function(obj, done) {
 
 passport.use(new GoogleStrategy({
         // TODO: must cope with changing hostname and port numbers here
-        returnURL: 'http://192.168.1.143:3000/auth/google/return',
-        realm: 'http://192.168.1.143:3000/'
+        returnURL: 'http://localhost:3000/auth/google/return',
+        realm: 'http://localhost:3000/'
     },
     function(identifier, profile, done) {
         // asynchronous verification, for effect...
@@ -69,7 +69,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(app.router);
-var routes = require('./routes/routes')(app, passport); // TODO: is this correct DI for app & passport?
+var routes = require('./routes')(app, passport); // TODO: is this correct DI for app & passport?
 
 /**
  * The following static content is exposed when not authenticated

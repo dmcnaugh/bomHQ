@@ -11,7 +11,7 @@ var pull = require('./pull'); //TODO: this should have a DI of app.
 exports = module.exports = function(app, passport) {
 
     app.get('/', function(req, res) {
-        res.render('index', { user: req.user})
+        res.render('index', { title: 'BOM stats', user: req.user})
     });
 
     // GET /auth/google
@@ -42,19 +42,18 @@ exports = module.exports = function(app, passport) {
      * Protected routes, i.e. must be an authenticated user to access these routes, including static content
      */
 
-    app.get('/img/:range/:stamp', ensureAuthenticated, pull.show);
+    this.ensureAuthenticated = function (req, res, next) {
+        if (req.isAuthenticated()) { return next(); }
+//        res.send(403);
+        res.redirect('/');
+    };
 
-    app.get('/account', ensureAuthenticated, function(req, res){
+    app.get('/img/:range/:stamp', this.ensureAuthenticated, pull.show);
+
+    app.get('/account', this.ensureAuthenticated, function(req, res){
         res.render('account', { user: req.user });
     });
 
-    return module.exports;
+    return this;
 
 };
-
-function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) { return next(); }
-    res.send(403);
-}
-
-exports.ensureAuthenticated = ensureAuthenticated;
