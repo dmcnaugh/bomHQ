@@ -9,6 +9,9 @@ var request = require('request');
 var mongo = require('mongodb');
 var cron = require('cron');
 
+var app = leak('$app');
+var debug = leak('$debug');
+
 var BSON = mongo.BSONPure;
 
 var MongoClient = mongo.MongoClient;

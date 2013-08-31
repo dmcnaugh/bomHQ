@@ -3,27 +3,27 @@
  * Module dependencies.
  */
 
+var di = require('./di')();
+
 var express = require('express')
     , http = require('http')
     , path = require('path')
-    , passport = require('passport')
+    , passport = please(require('passport'), '$passport')
     , GoogleStrategy = require('passport-google').Strategy
     , io = require('socket.io');
 
-/**
- * GLOBALS
- */
-debug = require('express/node_modules/debug')('bom'); // TODO: should not have to be global - currently referenced in routes/pull.js - use DI of (debug) instead
-app = express(); // TODO: should not have to be global - currently referenced in routes/pull.js - use DI of (app) instead
+var debug = please(require('express/node_modules/debug')('bom'), '$debug');
+var app = please(express(), '$app');
 
 var httpSrv = http.createServer(app);
 
-ioSrv = io.listen(httpSrv);
+var ioSrv = please(io.listen(httpSrv), '$socketIo');
+
 if ('production' == app.get('env')) {
     ioSrv.set('log level', 1);
 }
 
-var api = require('./routes/socketApi')(ioSrv);
+var api = require('./routes/socketApi');
 
 passport.serializeUser(function(user, done) {
     done(null, user);
@@ -69,7 +69,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(app.router);
-var routes = require('./routes')(app, passport); // TODO: is this correct DI for app & passport?
+var routes = require('./routes');
 
 /**
  * The following static content is exposed when not authenticated

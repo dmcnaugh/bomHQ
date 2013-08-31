@@ -56,7 +56,7 @@ var data = function(req, res) {
     });
 }
 
-exports = module.exports = function(io) {
+exports = module.exports = thankYou(['$socketIo'],function(io) {
 
     return io.sockets.on('connection', function (socket) {
 
@@ -67,4 +67,4 @@ exports = module.exports = function(io) {
         socket.on('data', data);
 
     });
-};
+});
