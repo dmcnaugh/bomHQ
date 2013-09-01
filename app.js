@@ -23,6 +23,10 @@ if ('production' == app.get('env')) {
     ioSrv.set('log level', 1);
 }
 
+var mongo = please(require('./routes/database'), '$mongo');
+//var db = require('./routes/database');
+//please(function() { return global.db } , '$db');
+var jobs = please(require('./routes/pull'), '$jobs');
 var api = require('./routes/socketApi');
 
 passport.serializeUser(function(user, done) {

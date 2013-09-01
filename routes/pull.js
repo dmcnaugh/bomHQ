@@ -6,206 +6,153 @@
  * TODO: needs some well planned separation of the services i.e. fetch data from BOM and store in mongodb, the mongodb connection awy from the routes.
  */
 var request = require('request');
-var mongo = require('mongodb');
+var BSON = require('mongodb').BSONPure;
 var cron = require('cron');
 
-var app = leak('$app');
-var debug = leak('$debug');
+exports = module.exports = thankYou(['$app', '$debug', '$socketIo', '$mongo'], function (app, debug, ioSrv, mongo) {
 
-var BSON = mongo.BSONPure;
+//var app = leak('$app');
+//var debug = leak('$debug');
+//var ioSrv = leak('$socketIo');
+//var mongo = leak('$mongo');
 
-var MongoClient = mongo.MongoClient;
-db = null;
+    function pad2(number) {
+        return (number < 10 ? '0' : '') + number
+    }
 
-var mongoConn = [
-    'mongodb://localhost/weather',
-    'mongodb://debian-box.local/weather',
-    'mongodb://app:app@wp.mackeneight.net:27017/weather',
-    'mongodb://app:app@ds031978.mongolab.com:31978/weather'
-];
+    var REQ = function(BOM_ID) {
 
-if ('development' == app.get('env')) {
-    var conn = mongoConn[1];
-} else {
-    var conn = process.env.MONGODB || mongoConn[0];
-}
+        BOM_ID = BOM_ID || 'IDR712';
 
-MongoClient.connect(conn, { server: { auto_reconnect: true, socketOptions: { keepAlive: 1}}}, function(err, dbc) {
-    if (err) throw 'MongoDB Error: Failed to connect to: ' + conn;
-    db = dbc;
-    debug("Connected to " + db.options.url + " : " + db.databaseName + " database");
-});
+        var imgFile= "http://www.bom.gov.au/radar/" + BOM_ID + ".T.";
 
-function pad2(number) {
-    return (number < 10 ? '0' : '') + number
-}
+        var doc = {};
 
-var REQ = function(BOM_ID) {
+        doc.reqDate = new Date();
+        debug('REQ:'+doc.reqDate.toUTCString());
 
-    BOM_ID = BOM_ID || 'IDR712';
+        doc.stamp = doc.reqDate.getUTCFullYear().toString();
+        doc.stamp += pad2(doc.reqDate.getUTCMonth()+1);
+        doc.stamp += pad2(doc.reqDate.getUTCDate());
+        doc.stamp += pad2(doc.reqDate.getUTCHours());
+        doc.stamp += pad2(Math.floor(doc.reqDate.getUTCMinutes()/6)*6);
+        debug('REQ:'+doc.stamp);
 
-    var imgFile= "http://www.bom.gov.au/radar/" + BOM_ID + ".T.";
+        doc.imgFile = imgFile + doc.stamp + '.png';
+        debug('REQ:'+doc.imgFile);
 
-    var doc = {};
-
-    doc.reqDate = new Date();
-    debug('REQ:'+doc.reqDate.toUTCString());
-
-    doc.stamp = doc.reqDate.getUTCFullYear().toString();
-    doc.stamp += pad2(doc.reqDate.getUTCMonth()+1);
-    doc.stamp += pad2(doc.reqDate.getUTCDate());
-    doc.stamp += pad2(doc.reqDate.getUTCHours());
-    doc.stamp += pad2(Math.floor(doc.reqDate.getUTCMinutes()/6)*6);
-    debug('REQ:'+doc.stamp);
-
-    doc.imgFile = imgFile + doc.stamp + '.png';
-    debug('REQ:'+doc.imgFile);
-
-    request({url: doc.imgFile, method: 'HEAD'}, function (error, response, body) {
-        /*
-         *TODO: need to cope with error conditions here
-         */
-//        console.log(error);
-        debug('BOM:'+response.statusCode);
-        debug('BOM:'+response.headers.date);
-
-        if (!error && response.statusCode == 200) {
+        request({url: doc.imgFile, method: 'HEAD'}, function (error, response, body) {
             /*
-             * encoding: null - forces the request() to return body as a buffer (not string)
+             *TODO: need to cope with error conditions here
              */
-            request({url: doc.imgFile, method: 'GET', encoding: null}, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
+    //        console.log(error);
+            debug('BOM:'+response.statusCode);
+            debug('BOM:'+response.headers.date);
 
-                    doc.header = response.headers;
-                    doc.image = body;
+            if (!error && response.statusCode == 200) {
+                /*
+                 * encoding: null - forces the request() to return body as a buffer (not string)
+                 */
+                request({url: doc.imgFile, method: 'GET', encoding: null}, function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
 
-                    db.collection(BOM_ID, function(err, collection) {
+                        doc.header = response.headers;
+                        doc.image = body;
+
+                        mongo.db.collection(BOM_ID, function(err, collection) {
+                            if (err) throw err;
+                            collection.insert( doc , function(err, result) {
+                                if (err) throw err;
+
+                                ioSrv.sockets.emit('radar', { range: BOM_ID, stamp: doc.stamp });
+
+                            });
+                        });
+
+
+                    }
+                });
+            }
+        });
+    };
+
+    var stations = [ 'canterbury' , 'sydney-observatory-hill', 'sydney-olympic-park'];
+
+    var STATS = function() {
+
+        var source = "http://www.bom.gov.au/nsw/observations/sydney.shtml";
+        var doc = {};
+
+        doc.reqDate = new Date();
+
+        var temp = "<td headers=\"obs-temp obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
+        var rain = "<td headers=\"obs-rainsince9am obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
+        var hum = "<td headers=\"obs-relhum obs-station-%STN%\"> *([0-9]+) *</td>";
+        var press = "<td headers=\"obs-press obs-station-sydney-observatory-hill\"> *([0-9]*\\.[0-9]+) *</td>"
+
+        request({url: source, method: 'HEAD'}, function (error, response, body) {
+            /*
+             *TODO: need to cope with error conditions here
+             */
+    //        console.log(error);
+            debug('STATS:'+response.statusCode);
+            debug('STATS:'+response.headers.date);
+
+            if (!error && response.statusCode == 200) {
+
+                request({url: source, method: 'GET'}, function (error, response, body) {
+
+                    doc.content = body;
+
+                    for(i=0; i < stations.length; i++) {
+
+                        doc[stations[i]] = {};
+
+                        doc[stations[i]].temp = parseFloat(RegExp(temp.replace('%STN%', stations[i])).exec(body)[1]);
+                        doc[stations[i]].rain = parseFloat(RegExp(rain.replace('%STN%', stations[i])).exec(body)[1]);
+                        doc[stations[i]].hum = parseFloat(RegExp(hum.replace('%STN%', stations[i])).exec(body)[1]);
+
+                    }
+
+                    doc['sydney-observatory-hill'].press = parseFloat(RegExp(press).exec(body)[1]);
+
+                    mongo.db.collection('OBS_SYD', function(err, collection) {
                         if (err) throw err;
                         collection.insert( doc , function(err, result) {
                             if (err) throw err;
 
-                            ioSrv.sockets.emit('radar', { range: BOM_ID, stamp: doc.stamp });
+                            doc.content = null;
+                            doc.reqDate = doc.reqDate.getTime();
+                            ioSrv.sockets.emit('stats', doc);
 
                         });
                     });
 
-
-                }
-            });
-        }
-    });
-};
-
-var stations = [ 'canterbury' , 'sydney-observatory-hill', 'sydney-olympic-park'];
-
-var STATS = function() {
-
-    var source = "http://www.bom.gov.au/nsw/observations/sydney.shtml";
-    var doc = {};
-
-    doc.reqDate = new Date();
-
-    var temp = "<td headers=\"obs-temp obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
-    var rain = "<td headers=\"obs-rainsince9am obs-station-%STN%\"> *([0-9]*\\.[0-9]+) *</td>";
-    var hum = "<td headers=\"obs-relhum obs-station-%STN%\"> *([0-9]+) *</td>";
-    var press = "<td headers=\"obs-press obs-station-sydney-observatory-hill\"> *([0-9]*\\.[0-9]+) *</td>"
-
-    request({url: source, method: 'HEAD'}, function (error, response, body) {
-        /*
-         *TODO: need to cope with error conditions here
-         */
-//        console.log(error);
-        debug('STATS:'+response.statusCode);
-        debug('STATS:'+response.headers.date);
-
-        if (!error && response.statusCode == 200) {
-
-            request({url: source, method: 'GET'}, function (error, response, body) {
-
-                doc.content = body;
-
-                for(i=0; i < stations.length; i++) {
-
-                    doc[stations[i]] = {};
-
-                    doc[stations[i]].temp = parseFloat(RegExp(temp.replace('%STN%', stations[i])).exec(body)[1]);
-                    doc[stations[i]].rain = parseFloat(RegExp(rain.replace('%STN%', stations[i])).exec(body)[1]);
-                    doc[stations[i]].hum = parseFloat(RegExp(hum.replace('%STN%', stations[i])).exec(body)[1]);
-
-                }
-
-                doc['sydney-observatory-hill'].press = parseFloat(RegExp(press).exec(body)[1]);
-
-                db.collection('OBS_SYD', function(err, collection) {
-                    if (err) throw err;
-                    collection.insert( doc , function(err, result) {
-                        if (err) throw err;
-
-                        doc.content = null;
-                        doc.reqDate = doc.reqDate.getTime();
-                        ioSrv.sockets.emit('stats', doc);
-
-                    });
                 });
 
-            });
+            }
 
-        }
-
-    });
-
-};
-
-var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
-job = [];
-
-
-if ('production' != app.get('env')) {
-    REQ = function() {} ;
-    STATS = function() {};
-}
-
-job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
-job[0].name = bomTargets[0];
-job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
-job[1].name = bomTargets[1];
-job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
-job[2].name = bomTargets[2];
-job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
-job[3].name = 'STATS';
-
-/**
- * The services end here ^^^
- *
- * There are plenty of dependencies between the two including
- *      job[]
- *      stations[]
- *      db  - the mongodb database connection
- *
- * And the routes start here vvv
- */
-
-exports.show = function(req, res) {
-    var range = req.params.range || 'IDR713';
-
-    db.collection(range, function(err, collection) {
-        if (err) throw err;
-        collection.findOne( {stamp: req.params.stamp }, function(err, result) {
-            if (err) throw err;
-            res.type(result.header['content-type']);
-            res.send(result.image.buffer);
         });
-    });
-}
 
-//exports.jobs = function(req, res) {
-//    res.render('jobs', { title: 'Job Stats' });
-//};
-//
-//exports.chart = function(req, res) {
-//    res.render('chart', { title: 'Station Charts', tab:req.params.stat, stat: req.params.stat, stations: stations});
-//}
-//
-//exports.radar = function(req,res) {
-//    res.render('radar', { title: 'Rain Radar', tab: 'radar'});
-//}
+    };
+
+    var bomTargets = [ 'IDR712', 'IDR713', 'IDR714' ];
+    var job = [];
+
+    if ('production' != app.get('env')) {
+        REQ = function() {} ;
+        STATS = function() {};
+    }
+
+    job[0] = new cron.CronJob('0 5-59/6 * * * *', function() { REQ(bomTargets[0]); }); job[0].start();
+    job[0].name = bomTargets[0];
+    job[1] = new cron.CronJob('15 5-59/6 * * * *', function() { REQ(bomTargets[1]); }); job[1].start();
+    job[1].name = bomTargets[1];
+    job[2] = new cron.CronJob('30 5-59/6 * * * *', function() { REQ(bomTargets[2]); }); job[2].start();
+    job[2].name = bomTargets[2];
+    job[3] = new cron.CronJob('45 5-59/6 * * * *', function() { STATS(); }); job[3].start();
+    job[3].name = 'STATS';
+
+    return job;
+
+});

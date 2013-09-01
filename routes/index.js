@@ -6,9 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-var pull = require('./pull'); //TODO: this should have a DI of app.
-
-exports = module.exports = thankYou(['$app', '$passport'], function(app, passport) {
+exports = module.exports = thankYou(['$app', '$passport', '$mongo'], function(app, passport, mongo) {
 
     app.get('/', function(req, res) {
         res.render('index', { title: 'BOM stats', user: req.user})
@@ -48,7 +46,20 @@ exports = module.exports = thankYou(['$app', '$passport'], function(app, passpor
         res.redirect('/');
     };
 
-    app.get('/img/:range/:stamp', ensureAuthenticated, pull.show);
+    var show = function (req, res) {
+        var range = req.params.range || 'IDR713';
+
+        mongo.db.collection(range, function(err, collection) {
+            if (err) throw err;
+            collection.findOne( {stamp: req.params.stamp }, function(err, result) {
+                if (err) throw err;
+                res.type(result.header['content-type']);
+                res.send(result.image.buffer);
+            });
+        });
+    }
+
+    app.get('/img/:range/:stamp', ensureAuthenticated, show);
 
     app.get('/account', ensureAuthenticated, function(req, res){
         res.render('account', { user: req.user });
