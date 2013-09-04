@@ -3,18 +3,12 @@
  * User: dmcnaughton
  * Date: 9/07/13
  * Time: 4:50 PM
- * TODO: needs some well planned separation of the services i.e. fetch data from BOM and store in mongodb, the mongodb connection awy from the routes.
+ * TODO: lots of tidying up to do in here, make constants configurable etc...
  */
 var request = require('request');
-var BSON = require('mongodb').BSONPure;
 var cron = require('cron');
 
 exports = module.exports = thankYou(['$app', '$debug', '$socketIo', '$mongo'], function (app, debug, ioSrv, mongo) {
-
-//var app = leak('$app');
-//var debug = leak('$debug');
-//var ioSrv = leak('$socketIo');
-//var mongo = leak('$mongo');
 
     function pad2(number) {
         return (number < 10 ? '0' : '') + number
@@ -68,8 +62,6 @@ exports = module.exports = thankYou(['$app', '$debug', '$socketIo', '$mongo'], f
 
                             });
                         });
-
-
                     }
                 });
             }

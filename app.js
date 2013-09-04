@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-var di = require('./di')();
+var di = require('./own_modules/play-nicely')();
 
 var express = require('express')
     , http = require('http')
@@ -24,8 +24,6 @@ if ('production' == app.get('env')) {
 }
 
 var mongo = please(require('./routes/database'), '$mongo');
-//var db = require('./routes/database');
-//please(function() { return global.db } , '$db');
 var jobs = please(require('./routes/pull'), '$jobs');
 var api = require('./routes/socketApi');
 
@@ -73,7 +71,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(app.router);
-var routes = require('./routes');
+var routes = require('./routes');  // loads ./routes/index.js
 
 /**
  * The following static content is exposed when not authenticated
@@ -96,3 +94,5 @@ if ('development' == app.get('env')) {
 httpSrv.listen(app.get('port'), function() {
   debug('Express server listening on port ' + app.get('port'));
 });
+
+di.peek();

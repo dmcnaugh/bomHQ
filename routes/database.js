@@ -7,7 +7,7 @@
  */
 var mongo = require('mongodb');
 
-exports = module.exports = thankYou(['$app', '$debug'], function(app, debug) {
+exports = module.exports = thankYou(function($debug, $app) {
 
     var MongoClient = mongo.MongoClient;
     var db = null;
@@ -19,7 +19,7 @@ exports = module.exports = thankYou(['$app', '$debug'], function(app, debug) {
         'mongodb://app:app@ds031978.mongolab.com:31978/weather'
     ];
 
-    if ('development' == app.get('env')) {
+    if ('development' == $app.get('env')) {
         var conn = mongoConn[1];
     } else {
         var conn = process.env.MONGODB || mongoConn[0];
@@ -28,7 +28,7 @@ exports = module.exports = thankYou(['$app', '$debug'], function(app, debug) {
     MongoClient.connect(conn, { server: { auto_reconnect: true, socketOptions: { keepAlive: 1}}}, function(err, dbc) {
         if (err) throw 'MongoDB Error: Failed to connect to: ' + conn;
         db = dbc;
-        debug("Connected to " + dbc.options.url + " : " + dbc.databaseName + " database");
+        $debug("Connected to " + dbc.options.url + " : " + dbc.databaseName + " database");
     });
 
     exports.__defineGetter__('db', function () { return db }); //TODO: some sugar here would be sweet
