@@ -1,4 +1,4 @@
-exports = module.exports = thankYou(['$socketIo', '$mongo', '$jobs'], function(io, mongo, job) {
+exports = module.exports = inject(['$socketIo', '$mongo', '$jobs'], function(io, mongo, job) {
 
 
     var imgList = function (req, res) {

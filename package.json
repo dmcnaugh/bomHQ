@@ -13,6 +13,7 @@
     "request": "*",
     "socket.io": "~0.9.16",
     "passport": "*",
-    "passport-google": "*"
+    "passport-google": "*",
+    "play-nicely": "*"
   }
 }

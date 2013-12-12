@@ -7,7 +7,7 @@
  */
 var mongo = require('mongodb');
 
-exports = module.exports = thankYou(function($debug, $app) {
+exports = module.exports = inject(function($socketIo, $app, $debug, $passport) {
 
     var MongoClient = mongo.MongoClient;
     var db = null;

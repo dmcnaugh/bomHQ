@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-var app = angular.module('bomApp', ['btford.socket-io']);
+var app = angular.module('bomApp', ['btford.socket-io','md5', 'ui-gravatar']);
 
 
 app.config(function($routeProvider, $locationProvider) {

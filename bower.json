@@ -14,6 +14,7 @@
     "flot": "*",
     "angular": "1.0.7",
     "angular-socket-io": "~0.2.0",
-    "font-awesome": "~3.2.1"
+    "font-awesome": "~3.2.1",
+    "angularjs-gravatar": "*"
   }
 }

@@ -3,28 +3,28 @@
  * Module dependencies.
  */
 
-var di = require('./own_modules/play-nicely')();
+var di = require('./own_modules/play-nicely')({formal: true});
 
 var express = require('express')
     , http = require('http')
     , path = require('path')
-    , passport = please(require('passport'), '$passport')
+    , passport = provide(require('passport'), '$passport')
     , GoogleStrategy = require('passport-google').Strategy
     , io = require('socket.io');
 
-var debug = please(require('express/node_modules/debug')('bom'), '$debug');
-var app = please(express(), '$app');
+var debug = provide(require('express/node_modules/debug')('bom'), '$debug');
+var app = provide(express(), '$app');
 
 var httpSrv = http.createServer(app);
 
-var ioSrv = please(io.listen(httpSrv), '$socketIo');
+var ioSrv = provide(io.listen(httpSrv), '$socketIo');
 
 if ('production' == app.get('env')) {
     ioSrv.set('log level', 1);
 }
 
-var mongo = please(require('./routes/database'), '$mongo');
-var jobs = please(require('./routes/pull'), '$jobs');
+var mongo = provide(require('./routes/database'), '$mongo');
+var jobs = provide(require('./routes/pull'), '$jobs');
 var api = require('./routes/socketApi');
 
 passport.serializeUser(function(user, done) {

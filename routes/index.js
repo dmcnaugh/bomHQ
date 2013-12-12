@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-exports = module.exports = thankYou(['$app', '$passport', '$mongo'], function(app, passport, mongo) {
+exports = module.exports = inject(['$app', '$passport', '$mongo'], function(app, passport, mongo) {
 
     app.get('/', function(req, res) {
         res.render('index', { title: 'BOM stats', user: req.user})

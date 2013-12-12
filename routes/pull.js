@@ -8,7 +8,7 @@
 var request = require('request');
 var cron = require('cron');
 
-exports = module.exports = thankYou(['$app', '$debug', '$socketIo', '$mongo'], function (app, debug, ioSrv, mongo) {
+exports = module.exports = inject(['$app', '$debug', '$socketIo', '$mongo'], function (app, debug, ioSrv, mongo) {
 
     function pad2(number) {
         return (number < 10 ? '0' : '') + number

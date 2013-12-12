@@ -22,11 +22,20 @@ html
                         button(data-toggle="dropdown").btn.dropdown-toggle.btn-link
                             span #{user.emails[0].value}&nbsp;
                             i.icon-caret-down
-                        ul.dropdown-menu
+                        ul(ng-init="email='#{user.emails[0].value}'").dropdown-menu
                             li.disabled
-                                a(href='') #{user.name.givenName}
-                            li.disabled
-                                a(href='') #{user.name.familyName}
+                                table
+                                    tr
+                                        td.grav-pic
+                                            gravatar-image(data-email="email", data-size="60", data-default="retro")
+                                        td.grav-pic
+                                            table
+                                                tr
+                                                    td
+                                                        span #{user.name.givenName}
+                                                tr
+                                                    td
+                                                        span #{user.name.familyName}
                             li.divider
                             li
                                 a(href='/account') Details
@@ -34,8 +43,8 @@ html
                             li
                                 a(href='/auth/logout') Log-out
                 else
-                    a(href="/auth/google").pull-right
-                        button(onclick="$('#spin').removeClass('hide'); $('#user').addClass('hide')").btn.btn-link Sign-in
+                    a(href="/auth/google", onclick="$('#spin').removeClass('hide'); $('#user').addClass('hide')").pull-right
+                        button.btn.btn-link Sign-in
                         i.icon-spinner.icon-spin.icon-large.hide#spin
                         i.icon-user#user
 
@@ -66,6 +75,8 @@ html
                     script(src='/lib/angular/angular.js')
                     script(src='/socket.io/socket.io.js')
                     script(src='/lib/angular-socket-io/socket.js')
+                    script(src='/lib/angularjs-gravatar/src/md5-service.js')
+                    script(src='/lib/angularjs-gravatar/src/gravatar-directive.js')
                     script(src='/javascripts/main.js')
 
                 else
