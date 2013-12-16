@@ -8,7 +8,7 @@
 var request = require('request');
 var cron = require('cron');
 
-exports = module.exports = inject(['$app', '$debug', '$socketIo', '$mongo'], function (app, debug, ioSrv, mongo) {
+exports = module.exports = inject(['$app', '$debug', '$socketIo', '$mongo', '$firebase'], function (app, debug, ioSrv, mongo, firebase) {
 
     function pad2(number) {
         return (number < 10 ? '0' : '') + number
@@ -60,6 +60,12 @@ exports = module.exports = inject(['$app', '$debug', '$socketIo', '$mongo'], fun
 
                                 ioSrv.sockets.emit('radar', { range: BOM_ID, stamp: doc.stamp });
 
+                                doc.image = 'data:image/png;base64,'+body.toString('base64');
+                                fbref = firebase.root.child(BOM_ID).push();
+                                var pri = doc.stamp.slice(0,8); console.log(pri);
+                                fbref.setWithPriority(doc, Number(pri));
+                                debug('FIREBASE:'+fbref.name());                            
+
                             });
                         });
                     }
@@ -74,6 +80,7 @@ exports = module.exports = inject(['$app', '$debug', '$socketIo', '$mongo'], fun
 
         var source = "http://www.bom.gov.au/nsw/observations/sydney.shtml";
         var doc = {};
+        var fbref = null;
 
         doc.reqDate = new Date();
 
@@ -95,6 +102,7 @@ exports = module.exports = inject(['$app', '$debug', '$socketIo', '$mongo'], fun
                 request({url: source, method: 'GET'}, function (error, response, body) {
 
                     doc.content = body;
+                    doc.content = null;
 
                     for(i=0; i < stations.length; i++) {
 
@@ -113,10 +121,18 @@ exports = module.exports = inject(['$app', '$debug', '$socketIo', '$mongo'], fun
                         collection.insert( doc , function(err, result) {
                             if (err) throw err;
 
+                            var pri = doc.reqDate.getUTCFullYear().toString();
+                            pri += pad2(doc.reqDate.getUTCMonth()+1);
+                            pri += pad2(doc.reqDate.getUTCDate());
+                          
                             doc.content = null;
                             doc.reqDate = doc.reqDate.getTime();
                             ioSrv.sockets.emit('stats', doc);
-
+ 
+                            fbref = firebase.root.child('stats').push();
+                            fbref.setWithPriority(doc, Number(pri));
+                            debug('FIREBASE:'+fbref.name());                            
+          
                         });
                     });
 

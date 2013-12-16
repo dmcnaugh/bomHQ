@@ -14,6 +14,6 @@
     "socket.io": "~0.9.16",
     "passport": "*",
     "passport-google": "*",
-    "play-nicely": "*"
+    "firebase": "~0.6"
   }
 }

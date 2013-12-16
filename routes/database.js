@@ -16,13 +16,14 @@ exports = module.exports = inject(function($socketIo, $app, $debug, $passport) {
         'mongodb://localhost/weather',
         'mongodb://debian-box.local/weather',
         'mongodb://app:app@wp.mackeneight.net:27017/weather',
-        'mongodb://app:app@ds031978.mongolab.com:31978/weather'
+        'mongodb://app:app@ds031978.mongolab.com:31978/weather',
+        'mongodb://app:appapp@paulo.mongohq.com:10018/bomHQ'
     ];
 
     if ('development' == $app.get('env')) {
-        var conn = mongoConn[1];
+        var conn = mongoConn[0];
     } else {
-        var conn = process.env.MONGODB || mongoConn[0];
+        var conn = process.env.MONGODB || mongoConn[4];
     }
 
     MongoClient.connect(conn, { server: { auto_reconnect: true, socketOptions: { keepAlive: 1}}}, function(err, dbc) {

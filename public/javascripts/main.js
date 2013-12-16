@@ -118,10 +118,13 @@ app.directive('pause', function($timeout) {
             });
 
             scope.$watch(attr['ngModel'], function(newVal, oldVal) {
+              if(newVal != undefined) {
                 scope[attr['bind']][oldVal] = false;
                 scope[attr['bind']][newVal] = true;
-
+//        console.log('BOOM'+' NEW '+newVal+' OLD '+oldVal);
+              }
             });
+
         }
     }
 });
@@ -226,6 +229,9 @@ app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTa
 
     $scope.stations = [ 'canterbury' , 'sydney-observatory-hill', 'sydney-olympic-park']; //TODO: would prefer to get this from server side
 
+    var myRootRef = null;
+    var fbQuery = null;
+
     MenuTab.change($routeParams.statType);
     $scope.statType = $routeParams.statType;
 
@@ -276,10 +282,37 @@ app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTa
     $scope.update = function() {
 
         $scope.plotdata = [];
-
         for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
+            $scope.plotdata.push({label: $scope.stations[stn], data: []});
+        }
 
-            socket.emit('data', { station: $scope.stations[stn], type: $scope.statType, period: $scope.period }, function(result) {
+        myRootRef = new Firebase('https://bomhq.firebaseio.com/stats/');
+        fbQuery = myRootRef.endAt().limit(Number($scope.period));
+        fbQuery.once('value', function (snapsh) {
+
+          var bigres = snapsh.val();
+//          console.log(bigres);
+
+          for(samp in bigres) {
+
+            res = bigres[samp];
+
+//            console.log(res);
+
+            for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
+
+              var pos = $scope.plotdata.map(function(v) {return v.label;}).indexOf($scope.stations[stn]);
+
+//              console.log(pos, res.reqDate, typeof res.reqDate, res[$scope.stations[stn]][$scope.statType]);
+//            console.log(res.reqDate);
+
+              if(pos >= 0) {
+
+                  $scope.plotdata[pos].data.push([ res.reqDate, res[$scope.stations[stn]][$scope.statType] ]);
+
+              }
+
+/*            socket.emit('data', { station: $scope.stations[stn], type: $scope.statType, period: $scope.period }, function(result) {
 
                 if(result.data == undefined) return;  //TODO: not sure if this is the best test
 
@@ -287,10 +320,45 @@ app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTa
 
                 $scope.updateStats(result.label);
 
-            });
-        }
+              });
+*/
+            }
+
+          }
+
+          for(var stn=0; stn < $scope.stations.length; stn++) {
+            $scope.updateStats($scope.stations[stn]);
+//            console.log($scope.plotdata[stn]);
+          }
+          $scope.$apply($scope.plotdata);
+
+/*          fbQuery.on('child_added', function (snapsh) {
+
+              var res = snapsh.val();
+              console.log('CHILD:'+res);
+
+              for(var stn=0; stn < $scope.stations.length; stn++) { // var:stations initialised before this script is included
+
+                  var pos = $scope.plotdata.map(function(v) {return v.label;}).indexOf($scope.stations[stn]);
+
+                  if(pos >= 0) {
+
+                      $scope.plotdata[pos].data.push([ res.reqDate, res[$scope.stations[stn]][$scope.statType] ]);
+                      $scope.updateStats($scope.stations[stn]);
+
+                  }
+
+              }
+
+              $scope.$apply($scope.plotdata);
+
+          });
+*/
+       });
+
     };
 
+/*
     socket.forward('stats', $scope);
     $scope.$on('socket:stats', function (ev, res) {
 
@@ -315,6 +383,7 @@ app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTa
         $scope.$apply($scope.plotdata);
 
     });
+*/
 
     $scope.update();
 
@@ -323,12 +392,16 @@ app.controller('GetStats', function ($scope, $http, $routeParams, socket, MenuTa
 app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, socket, MenuTab) {
 
     MenuTab.change('radar');
-
+  
+    var myRootRef = null;
+    var fbQuery = null;
+  
     $scope.images = [];
     $scope.range = 'IDR713';
     $scope.span = 20;
     $scope.view = [];
     $scope.stamp = [];
+    $scope.slide = undefined;
 
     $scope.vis = {
         back: true,
@@ -346,9 +419,11 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, so
      */
     $scope.timerDo = function() {
 
-        $scope.view.unshift(false);
+//        $scope.view.unshift(false);
         last = $scope.view.pop();
-        $scope.view[0] = last;
+        $scope.view.unshift(last);
+//        $scope.view[0] = last;
+//        console.log('TIC'+' VIEW '+$scope.view.length);
         if(last) {
             $scope.slide = 0;
         } else {
@@ -364,13 +439,39 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, so
 
     $scope.refresh = function() {
 
+        if(fbQuery != null) fbQuery.off();
         if($scope.prom) { $timeout.cancel($scope.prom); $scope.prom = null; }
+
+//        $scope.slide = 0;  
+          $scope.slide = undefined;
 
         $scope.images = [];
         $scope.view = [];
         $scope.stamp = [];
+     
+        myRootRef = new Firebase('https://bomhq.firebaseio.com/'+$scope.range+'/');
+        fbQuery = myRootRef.endAt().limit(Number($scope.span));
+        fbQuery.on('child_added', function (snapsh) {
+          var res = snapsh.val();
+//        if(res.range == $scope.range) {
+            $scope.view.push(false);
+            $scope.stamp.push(res.stamp);
+//            $scope.images.push("/img/"+$scope.range+"/"+res.stamp);
+            $scope.images.push(res.image);
+            console.log('TIM'+res.stamp+' VIEW '+$scope.view.length);
 
-        socket.emit('imglist', { range: $scope.range, span: $scope.span }, function(result) {
+//        };
+
+          if($scope.view.length == 1) {
+            $scope.view[0] = true;
+            $scope.slide = 0;
+            $scope.prom = $timeout($scope.timerDo, $scope.speed);
+            console.log('BOB'+' VIEW '+$scope.view.length);
+          }
+
+        });
+/* 
+      socket.emit('imglist', { range: $scope.range, span: $scope.span }, function(result) {
 
             $scope.stamp = result;
 
@@ -381,28 +482,25 @@ app.controller('RadarImage', function ($scope, $http, $routeParams, $timeout, so
 
             $scope.slide = $scope.view.length - 1;
             $scope.view[$scope.slide] = true;
+*/
 
-            $scope.prom = $timeout($scope.timerDo, 2000);
-
-        });
+//        });
     };
 
+/*
     socket.forward('radar', $scope);
-    $scope.$on('socket:radar', function (ev, res) {
+    $scope.$on('myRootRef:child_added', function (ev, res) {
         console.log(res);
-        if(res.range == $scope.range) {
+//        if(res.range == $scope.range) {
             $scope.view.push(false);
             $scope.stamp.push(res.stamp);
-            $scope.images.push("/img/"+$scope.range+"/"+res.stamp);
-        };
-        /**
-         * TODO: maybe we should
-         * $scope.view.shift
-         * $scope.stamp.shift
-         * $scope.images.shift
-         */
-    });
+//            $scope.images.push("/img/"+$scope.range+"/"+res.stamp);
+            $scope.images.push(res.image);
+//        };
 
+    });
+*/
+  
     $scope.refresh();
 
 });

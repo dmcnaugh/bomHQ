@@ -3,7 +3,8 @@
  * Module dependencies.
  */
 
-var di = require('./own_modules/play-nicely')({formal: true});
+//var di = require('./own_modules/play-nicely')({formal: true});
+var di = require('play-nicely')({formal: true});
 
 var express = require('express')
     , http = require('http')
@@ -23,6 +24,7 @@ if ('production' == app.get('env')) {
     ioSrv.set('log level', 1);
 }
 
+var firebase = provide(require('./routes/fireb'), '$firebase');
 var mongo = provide(require('./routes/database'), '$mongo');
 var jobs = provide(require('./routes/pull'), '$jobs');
 var api = require('./routes/socketApi');
@@ -37,8 +39,8 @@ passport.deserializeUser(function(obj, done) {
 
 passport.use(new GoogleStrategy({
         // TODO: must cope with changing hostname and port numbers here
-        returnURL: 'http://localhost:3000/auth/google/return',
-        realm: 'http://localhost:3000/'
+        returnURL: 'http://node01-35877.apse2.actionbox.io:3000/auth/google/return',
+        realm: 'http://node01-35877.apse2.actionbox.io:3000/'
     },
     function(identifier, profile, done) {
         // asynchronous verification, for effect...
@@ -95,4 +97,4 @@ httpSrv.listen(app.get('port'), function() {
   debug('Express server listening on port ' + app.get('port'));
 });
 
-di.peek();
+//di.peek();
